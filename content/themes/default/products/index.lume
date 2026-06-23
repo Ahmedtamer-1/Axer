@@ -1,0 +1,32 @@
+<div style="max-width: 1200px; margin: 4rem auto; padding: 0 2rem;">
+    <h1 style="font-size: 2.5rem; text-align: center; margin-bottom: 3rem;">Shop All Products</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
+        {% for product in products %}
+            <a href="/products/{{ product.slug }}" style="text-decoration: none; color: inherit; display: block; group;">
+                <div style="position: relative; aspect-ratio: 4/5; overflow: hidden; border-radius: 0.5rem; background: #f1f5f9; margin-bottom: 1rem;">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h3 style="margin: 0 0 0.25rem 0; font-size: 1.125rem;">{{ product.name }}</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.875rem;">{{ product.description }}</p>
+                    </div>
+                    <div style="font-weight: 600; font-size: 1.125rem;">
+                        {{ settings.currency_symbol }}{{ product.price }}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+
+        {% if products_empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: #f8fafc; border-radius: 0.5rem; color: #64748b;">
+                <p style="font-size: 1.125rem;">No products found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    a:hover img { transform: scale(1.05); }
+</style>

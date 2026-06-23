@@ -1,0 +1,8 @@
+<div class="section newsletter-section">
+    <h2>{{ title }}</h2>
+    <p style="color: #475569;">{{ subtitle }}</p>
+    <div class="newsletter-form">
+        <input type="email" class="newsletter-input" placeholder="your@email.com">
+        <button class="btn" style="background-color: #6366f1; color: white;">Subscribe</button>
+    </div>
+</div>

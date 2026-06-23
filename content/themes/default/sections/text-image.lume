@@ -1,0 +1,11 @@
+<div class="section text-image-section" style="background-color: {{ bg_color }}; color: {{ text_color }}; padding: 4rem 2rem;">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: {% if image_position == 'left' %}row-reverse{% else %}row{% endif %}; gap: 3rem; align-items: center;">
+        <div style="flex: 1;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">{{ title }}</h2>
+            <p style="font-size: 1.125rem; line-height: 1.6; opacity: 0.9;">{{ content }}</p>
+        </div>
+        <div style="flex: 1;">
+            <img src="{{ image_url }}" alt="{{ title }}" style="width: 100%; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+        </div>
+    </div>
+</div>

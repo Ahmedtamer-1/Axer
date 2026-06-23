@@ -1,0 +1,6 @@
+<div class="section rich-text-section" style="text-align: {{ align }};">
+    {% if title %}
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">{{ title }}</h2>
+    {% endif %}
+    <p style="font-size: 1.125rem; line-height: 1.7; color: #475569;">{{ content }}</p>
+</div>

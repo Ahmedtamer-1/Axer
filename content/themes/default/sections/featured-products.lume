@@ -1,0 +1,17 @@
+<div class="section">
+    <h2 style="text-align: center; font-size: 2rem;">{{ title }}</h2>
+    <div class="grid-products">
+        <!-- In a real template this would iterate over products, for demo purposes we loop -->
+        <!-- Note: We can implement dynamic AxerScript elements later, for now we render static blocks -->
+        <div class="product-card">
+            <div class="product-img">Demo Image 1</div>
+            <div class="product-title">Elegance Silk Dress</div>
+            <div class="product-price">1,250.00 EGP</div>
+        </div>
+        <div class="product-card">
+            <div class="product-img">Demo Image 2</div>
+            <div class="product-title">Minimalist Leather Bag</div>
+            <div class="product-price">3,400.00 EGP</div>
+        </div>
+    </div>
+</div>

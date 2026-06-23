@@ -1,0 +1,7 @@
+<div class="section hero-section" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+    <h1>{{ title }}</h1>
+    <p>{{ subtitle }}</p>
+    {% if button_text %}
+    <a href="{{ button_url }}" class="btn" style="background-color: {{ text_color }}; color: {{ bg_color }};">{{ button_text }}</a>
+    {% endif %}
+</div>

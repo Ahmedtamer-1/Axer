@@ -1,0 +1,5 @@
+# Lume v2 Production CRON Jobs
+# Replace /path/to/lume with the actual absolute path to your Lume installation
+
+# Run Lume scheduled tasks every minute (e.g. queue workers, recurring payments, email dispatches)
+* * * * * /usr/bin/php /path/to/lume/cron.php >> /dev/null 2>&1

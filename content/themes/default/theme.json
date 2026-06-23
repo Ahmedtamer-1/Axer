@@ -1,0 +1,36 @@
+{
+    "name": "Default Minimal Theme",
+    "description": "Clean, light theme designed for elegance and luxury fashion.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "author_url": "https://Axer.org",
+    "settings": {
+        "primary_color": "#6366f1",
+        "secondary_color": "#1e293b",
+        "text_color": "#0f172a",
+        "font_family": "Outfit",
+        "button_border_radius": "4px"
+    },
+    "settings_schema": [
+        {
+            "name": "Colors",
+            "settings": [
+                { "name": "primary_color", "label": "Brand Color", "type": "color" },
+                { "name": "secondary_color", "label": "Accent Color", "type": "color" },
+                { "name": "text_color", "label": "Main Text Color", "type": "color" }
+            ]
+        },
+        {
+            "name": "Typography",
+            "settings": [
+                { "name": "font_family", "label": "Body Font Family", "type": "select", "options": ["Outfit", "Inter", "Roboto", "Georgia"] }
+            ]
+        },
+        {
+            "name": "Layout & Styling",
+            "settings": [
+                { "name": "button_border_radius", "label": "Button Roundness", "type": "select", "options": ["0px", "4px", "8px", "999px"] }
+            ]
+        }
+    ]
+}
