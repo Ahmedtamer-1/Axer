@@ -1,13 +1,13 @@
 <?php
 
-namespace Lume\Controllers\Storefront;
+namespace Axer\Controllers\Storefront;
 
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
-use Lume\Services\ThemeService;
-use Lume\Template\Engine;
-use Lume\Services\PixelService;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
+use Axer\Services\ThemeService;
+use Axer\Template\Engine;
+use Axer\Services\PixelService;
 
 class ProductController
 {

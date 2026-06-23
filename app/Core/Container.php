@@ -1,6 +1,6 @@
 <?php
 
-namespace Lume\Core;
+namespace Axer\Core;
 
 class Container
 {

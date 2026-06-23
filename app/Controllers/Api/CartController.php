@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Controllers\Api;
+namespace Axer\Controllers\Api;
 
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
 
 class CartController extends ApiController
 {

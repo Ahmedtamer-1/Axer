@@ -1,6 +1,6 @@
 <?php
 
-namespace Lume\Database;
+namespace Axer\Database;
 
 abstract class Model implements \JsonSerializable
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Lume\Services;
+namespace Axer\Services;
 
 class MarketplaceService
 {

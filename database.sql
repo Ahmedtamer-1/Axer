@@ -1,3 +1,7 @@
+-- Axer CMS Database Snapshot
+-- NOTE: This file is a snapshot dump for convenience. The authoritative schema source is in database/migrations/
+-- NOTE: JSON columns are downgraded to LONGTEXT for broader compatibility with shared hosting environments (like Hostinger MariaDB versions that don't fully support native JSON).
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE IF NOT EXISTS `users` (
@@ -13,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `users` (
             `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
             `is_active` TINYINT(1) NOT NULL DEFAULT 1,
             `last_login_at` TIMESTAMP NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_email (`email`),
@@ -60,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
             `is_active` TINYINT(1) NOT NULL DEFAULT 1,
             `seo_title` VARCHAR(255) DEFAULT NULL,
             `seo_description` TEXT DEFAULT NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (`parent_id`) REFERENCES `categories`(`id`) ON DELETE SET NULL,
@@ -87,10 +91,10 @@ CREATE TABLE IF NOT EXISTS `products` (
             `featured` TINYINT(1) NOT NULL DEFAULT 0,
             `category_id` INT UNSIGNED DEFAULT NULL,
             `brand` VARCHAR(100) DEFAULT NULL,
-            `tags` LONGTEXT DEFAULT NULL,
+            `tags` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `seo_title` VARCHAR(255) DEFAULT NULL,
             `seo_description` TEXT DEFAULT NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `sort_order` INT NOT NULL DEFAULT 0,
             `views_count` INT UNSIGNED NOT NULL DEFAULT 0,
             `sales_count` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -104,6 +108,14 @@ CREATE TABLE IF NOT EXISTS `products` (
             INDEX idx_featured (`featured`, `status`),
             INDEX idx_price (`price`),
             FULLTEXT idx_search (`name`, `description`, `short_description`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `product_categories` (
+            `product_id` INT UNSIGNED NOT NULL,
+            `category_id` INT UNSIGNED NOT NULL,
+            PRIMARY KEY (`product_id`, `category_id`),
+            CONSTRAINT `fk_pc_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_pc_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `product_variants` (
@@ -121,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
             `image` VARCHAR(255) DEFAULT NULL,
             `is_active` TINYINT(1) NOT NULL DEFAULT 1,
             `sort_order` INT NOT NULL DEFAULT 0,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
             UNIQUE KEY unique_variant (`product_id`, `size`, `color_name`),
@@ -161,15 +173,15 @@ CREATE TABLE IF NOT EXISTS `orders` (
             `customer_email` VARCHAR(255) NOT NULL,
             `customer_phone` VARCHAR(20) DEFAULT NULL,
             `customer_name` VARCHAR(200) NOT NULL,
-            `shipping_address` LONGTEXT NOT NULL,
-            `billing_address` LONGTEXT DEFAULT NULL,
+            `shipping_address` LONGTEXT /* (JSON fallback) */ NOT NULL,
+            `billing_address` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `tracking_number` VARCHAR(100) DEFAULT NULL,
             `tracking_url` VARCHAR(500) DEFAULT NULL,
             `shipping_carrier` VARCHAR(50) DEFAULT NULL,
             `customer_notes` TEXT DEFAULT NULL,
             `admin_notes` TEXT DEFAULT NULL,
-            `pixel_sent` LONGTEXT DEFAULT NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `pixel_sent` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `paid_at` TIMESTAMP NULL,
             `shipped_at` TIMESTAMP NULL,
             `delivered_at` TIMESTAMP NULL,
@@ -197,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
             `quantity` INT NOT NULL DEFAULT 1,
             `total` DECIMAL(10,2) NOT NULL,
             `image` VARCHAR(500) DEFAULT NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
             FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL,
             INDEX idx_order (`order_id`)
@@ -210,7 +222,7 @@ CREATE TABLE IF NOT EXISTS `cart_items` (
             `product_id` INT UNSIGNED NOT NULL,
             `variant_id` INT UNSIGNED DEFAULT NULL,
             `quantity` INT NOT NULL DEFAULT 1,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -226,12 +238,12 @@ CREATE TABLE IF NOT EXISTS `pages` (
             `content` LONGTEXT DEFAULT NULL,
             `template` VARCHAR(100) DEFAULT 'page',
             `status` ENUM('published','draft') NOT NULL DEFAULT 'draft',
-            `builder_data` LONGTEXT DEFAULT NULL,
+            `builder_data` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `seo_title` VARCHAR(255) DEFAULT NULL,
             `seo_description` TEXT DEFAULT NULL,
             `sort_order` INT NOT NULL DEFAULT 0,
             `show_in_nav` TINYINT(1) NOT NULL DEFAULT 0,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_slug (`slug`),
@@ -243,7 +255,7 @@ CREATE TABLE IF NOT EXISTS `sections` (
             `page_id` INT UNSIGNED DEFAULT NULL,
             `location` VARCHAR(50) DEFAULT 'body',
             `type` VARCHAR(50) NOT NULL,
-            `settings` LONGTEXT NOT NULL,
+            `settings` LONGTEXT /* (JSON fallback) */ NOT NULL,
             `content` LONGTEXT DEFAULT NULL,
             `sort_order` INT NOT NULL DEFAULT 0,
             `is_active` TINYINT(1) NOT NULL DEFAULT 1,
@@ -264,7 +276,7 @@ CREATE TABLE IF NOT EXISTS `media` (
             `height` INT UNSIGNED DEFAULT NULL,
             `alt_text` VARCHAR(255) DEFAULT NULL,
             `folder` VARCHAR(100) DEFAULT 'general',
-            `thumbnails` LONGTEXT DEFAULT NULL,
+            `thumbnails` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_folder (`folder`),
             INDEX idx_mime (`mime_type`)
@@ -290,8 +302,8 @@ CREATE TABLE IF NOT EXISTS `themes` (
             `author_url` VARCHAR(500) DEFAULT NULL,
             `screenshot` VARCHAR(500) DEFAULT NULL,
             `is_active` TINYINT(1) NOT NULL DEFAULT 0,
-            `settings` LONGTEXT DEFAULT NULL,
-            `settings_schema` LONGTEXT DEFAULT NULL,
+            `settings` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
+            `settings_schema` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `installed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -303,8 +315,8 @@ CREATE TABLE IF NOT EXISTS `plugins` (
             `version` VARCHAR(20) NOT NULL DEFAULT '1.0.0',
             `author` VARCHAR(255) DEFAULT NULL,
             `is_active` TINYINT(1) NOT NULL DEFAULT 0,
-            `settings` LONGTEXT DEFAULT NULL,
-            `hooks` LONGTEXT DEFAULT NULL,
+            `settings` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
+            `hooks` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `installed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -318,7 +330,7 @@ CREATE TABLE IF NOT EXISTS `coupons` (
             `uses_count` INT UNSIGNED NOT NULL DEFAULT 0,
             `max_uses_per_user` INT UNSIGNED DEFAULT NULL,
             `applicable_to` ENUM('all','products','categories') NOT NULL DEFAULT 'all',
-            `applicable_ids` LONGTEXT DEFAULT NULL,
+            `applicable_ids` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `starts_at` TIMESTAMP NULL,
             `expires_at` TIMESTAMP NULL,
             `is_active` TINYINT(1) NOT NULL DEFAULT 1,
@@ -329,7 +341,7 @@ CREATE TABLE IF NOT EXISTS `coupons` (
 CREATE TABLE IF NOT EXISTS `shipping_zones` (
             `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `name` VARCHAR(255) NOT NULL,
-            `regions` LONGTEXT NOT NULL,
+            `regions` LONGTEXT /* (JSON fallback) */ NOT NULL,
             `type` ENUM('flat','weight','free','calculated') NOT NULL DEFAULT 'flat',
             `cost` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             `free_above` DECIMAL(10,2) DEFAULT NULL,
@@ -359,7 +371,7 @@ CREATE TABLE IF NOT EXISTS `activity_log` (
             `description` TEXT DEFAULT NULL,
             `ip_address` VARCHAR(45) DEFAULT NULL,
             `user_agent` VARCHAR(500) DEFAULT NULL,
-            `metadata` LONGTEXT DEFAULT NULL,
+            `metadata` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
             INDEX idx_user (`user_id`),
@@ -372,7 +384,7 @@ CREATE TABLE IF NOT EXISTS `api_tokens` (
             `user_id` INT UNSIGNED NOT NULL,
             `token_hash` VARCHAR(64) NOT NULL UNIQUE,
             `name` VARCHAR(100) NOT NULL DEFAULT 'default',
-            `permissions` LONGTEXT DEFAULT NULL,
+            `permissions` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `last_used_at` TIMESTAMP NULL,
             `expires_at` TIMESTAMP NULL,
             `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -384,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `pixel_events` (
             `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `event_type` VARCHAR(50) NOT NULL,
             `platform` VARCHAR(20) NOT NULL,
-            `event_data` LONGTEXT NOT NULL,
+            `event_data` LONGTEXT /* (JSON fallback) */ NOT NULL,
             `order_id` INT UNSIGNED DEFAULT NULL,
             `user_id` INT UNSIGNED DEFAULT NULL,
             `session_id` VARCHAR(128) DEFAULT NULL,
@@ -411,6 +423,16 @@ CREATE TABLE IF NOT EXISTS `reviews` (
             INDEX idx_product (`product_id`, `status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+            `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `ip_address` VARCHAR(45) NOT NULL,
+            `endpoint` VARCHAR(255) NOT NULL,
+            `attempts` INT NOT NULL DEFAULT 1,
+            `lockout_time` TIMESTAMP NULL DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uk_ip_endpoint` (`ip_address`, `endpoint`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Admin User
 INSERT INTO `users` (`email`, `password_hash`, `first_name`, `role`) VALUES 
@@ -418,7 +440,7 @@ INSERT INTO `users` (`email`, `password_hash`, `first_name`, `role`) VALUES
 
 -- Default Settings
 INSERT IGNORE INTO `settings` (`group`, `key`, `value`, `type`) VALUES 
-('general', 'store_name', 'My Lume Store', 'string'),
+('general', 'store_name', 'My Axer Store', 'string'),
 ('general', 'store_email', 'admin@example.com', 'string'),
 ('general', 'currency', 'USD', 'string'),
 ('general', 'currency_symbol', '$', 'string'),
@@ -427,6 +449,6 @@ INSERT IGNORE INTO `settings` (`group`, `key`, `value`, `type`) VALUES
 
 -- Default Home Page
 INSERT INTO `pages` (`title`, `slug`, `content`, `template`, `status`, `builder_data`) VALUES 
-('Home', 'home', '<h1>Welcome to Lume Store</h1>', 'page', 'published', '[{"id":"hero-1","type":"hero","settings":{"title":"Welcome to Lume Storefront","subtitle":"Fully customisable headless e-commerce CMS","button_text":"Shop Now","button_url":"/products","bg_color":"#6366f1","text_color":"#ffffff"}},{"id":"text-image-1","type":"text-image","settings":{"title":"Discover Our Products","content":"We offer the best quality products for your everyday needs. Browse our catalog and find amazing deals.","image_url":"https://via.placeholder.com/600x400","image_position":"right","bg_color":"#f8fafc","text_color":"#0f172a"}}]');
+('Home', 'home', '<h1>Welcome to Axer Store</h1>', 'page', 'published', '[{"id":"hero-1","type":"hero","settings":{"title":"Welcome to Axer Storefront","subtitle":"Fully customisable headless e-commerce CMS","button_text":"Shop Now","button_url":"/products","bg_color":"#6366f1","text_color":"#ffffff"}},{"id":"text-image-1","type":"text-image","settings":{"title":"Discover Our Products","content":"We offer the best quality products for your everyday needs. Browse our catalog and find amazing deals.","image_url":"https://via.placeholder.com/600x400","image_position":"right","bg_color":"#f8fafc","text_color":"#0f172a"}}]');
 
 SET FOREIGN_KEY_CHECKS = 1;

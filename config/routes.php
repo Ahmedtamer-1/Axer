@@ -1,12 +1,12 @@
 <?php
 
-use Lume\Core\Router;
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
-use Lume\Services\ThemeService;
-use Lume\Services\PixelService;
-use Lume\Template\Engine;
+use Axer\Core\Router;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
+use Axer\Services\ThemeService;
+use Axer\Services\PixelService;
+use Axer\Template\Engine;
 
 /** @var Router $router */
 
@@ -90,13 +90,13 @@ function renderStorefrontPage(Request $request, string $slug): Response {
 }
 
 // Checkout & Payment Routes
-$router->post('/checkout/process', [\Lume\Controllers\Storefront\CheckoutController::class, 'process']);
-$router->post('/checkout/callback', [\Lume\Controllers\Storefront\CheckoutController::class, 'callback']);
-$router->get('/checkout/callback', [\Lume\Controllers\Storefront\CheckoutController::class, 'callback']);
+$router->post('/checkout/process', [\Axer\Controllers\Storefront\CheckoutController::class, 'process']);
+$router->post('/checkout/callback', [\Axer\Controllers\Storefront\CheckoutController::class, 'callback']);
+$router->get('/checkout/callback', [\Axer\Controllers\Storefront\CheckoutController::class, 'callback']);
 
 // Storefront Products Routes
-$router->get('/products', [\Lume\Controllers\Storefront\ProductController::class, 'index']);
-$router->get('/products/{slug}', [\Lume\Controllers\Storefront\ProductController::class, 'show']);
+$router->get('/products', [\Axer\Controllers\Storefront\ProductController::class, 'index']);
+$router->get('/products/{slug}', [\Axer\Controllers\Storefront\ProductController::class, 'show']);
 
 // Storefront Home Page Route
 $router->get('/', function (Request $request) {

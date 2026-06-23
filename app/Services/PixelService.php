@@ -1,9 +1,9 @@
 <?php
 
-namespace Lume\Services;
+namespace Axer\Services;
 
-use Lume\Core\Config;
-use Lume\Core\App;
+use Axer\Core\Config;
+use Axer\Core\App;
 
 class PixelService
 {

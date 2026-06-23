@@ -1,12 +1,12 @@
 <?php
 
-namespace Lume\Controllers\Storefront;
+namespace Axer\Controllers\Storefront;
 
-use Lume\Core\Controller;
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
-use Lume\Services\PixelService;
+use Axer\Core\Controller;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
+use Axer\Services\PixelService;
 
 class CheckoutController extends Controller
 {

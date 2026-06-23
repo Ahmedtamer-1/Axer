@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Database;
+namespace Axer\Database;
 
 use PDO;
 use PDOException;
-use Lume\Core\Config;
+use Axer\Core\Config;
 
 class Connection
 {

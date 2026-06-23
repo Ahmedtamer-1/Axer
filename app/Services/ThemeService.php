@@ -1,8 +1,8 @@
 <?php
 
-namespace Lume\Services;
+namespace Axer\Services;
 
-use Lume\Database\QueryBuilder;
+use Axer\Database\QueryBuilder;
 
 class ThemeService
 {

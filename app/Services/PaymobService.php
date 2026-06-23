@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Services;
+namespace Axer\Services;
 
-use Lume\Core\Config;
-use Lume\Core\App;
-use Lume\Database\QueryBuilder;
+use Axer\Core\Config;
+use Axer\Core\App;
+use Axer\Database\QueryBuilder;
 
 class PaymobService
 {

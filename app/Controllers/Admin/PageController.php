@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Controllers\Admin;
+namespace Axer\Controllers\Admin;
 
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
 
 class PageController extends AdminController
 {
@@ -224,7 +224,7 @@ class PageController extends AdminController
             
             if (file_exists($sectionFile)) {
                 try {
-                    $engine = new \Lume\Template\Engine([$themePath], BASE_PATH . '/storage/cache');
+                    $engine = new \Axer\Template\Engine([$themePath], BASE_PATH . '/storage/cache');
                     $html .= $engine->render("sections/{$type}", $settings);
                 } catch (\Exception $e) {
                     $html .= "<div style='padding: 2rem; color: red; border: 1px dashed red;'>Error rendering {$type}: " . htmlspecialchars($e->getMessage()) . "</div>";

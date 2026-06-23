@@ -1,8 +1,8 @@
 <?php
 
-namespace Lume\Services;
+namespace Axer\Services;
 
-use Lume\Core\Event;
+use Axer\Core\Event;
 
 class PluginService
 {

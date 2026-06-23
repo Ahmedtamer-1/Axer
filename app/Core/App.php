@@ -1,6 +1,6 @@
 <?php
 
-namespace Lume\Core;
+namespace Axer\Core;
 
 class App
 {
@@ -31,7 +31,7 @@ class App
     protected function registerAutoloader(): void
     {
         spl_autoload_register(function ($class) {
-            $prefix = 'Lume\\';
+            $prefix = 'Axer\\';
             $base_dir = BASE_PATH . '/app/';
 
             $len = strlen($prefix);
@@ -97,12 +97,12 @@ class App
         define('APP_DEBUG', $config->get('APP_DEBUG', false));
 
         // Initialize Plugin System
-        $this->container->singleton(\Lume\Services\PluginService::class, function () {
-            return new \Lume\Services\PluginService();
+        $this->container->singleton(\Axer\Services\PluginService::class, function () {
+            return new \Axer\Services\PluginService();
         });
         
         // Boot plugins
-        $this->container->get(\Lume\Services\PluginService::class)->init();
+        $this->container->get(\Axer\Services\PluginService::class)->init();
     }
 
     public function run(): void

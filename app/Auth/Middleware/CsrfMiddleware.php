@@ -1,9 +1,9 @@
 <?php
 
-namespace Lume\Auth\Middleware;
+namespace Axer\Auth\Middleware;
 
-use Lume\Core\Request;
-use Lume\Core\Response;
+use Axer\Core\Request;
+use Axer\Core\Response;
 
 class CsrfMiddleware
 {

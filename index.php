@@ -8,7 +8,7 @@ define('BASE_PATH', __DIR__);
 // Load the application bootstrap
 require_once BASE_PATH . '/app/Core/App.php';
 
-use Lume\Core\App;
+use Axer\Core\App;
 
 // Bootstrap the application
 $app = new App();

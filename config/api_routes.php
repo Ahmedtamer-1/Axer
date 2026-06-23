@@ -1,10 +1,10 @@
 <?php
 
-use Lume\Core\Router;
-use Lume\Controllers\Api\ProductController;
-use Lume\Controllers\Api\CartController;
-use Lume\Auth\Middleware\CorsMiddleware;
-use Lume\Auth\Middleware\AuthMiddleware;
+use Axer\Core\Router;
+use Axer\Controllers\Api\ProductController;
+use Axer\Controllers\Api\CartController;
+use Axer\Auth\Middleware\CorsMiddleware;
+use Axer\Auth\Middleware\AuthMiddleware;
 
 /** @var Router $router */
 
@@ -21,7 +21,7 @@ $router->group([
     $router->post('/cart/add', [CartController::class, 'add']);
     
     // Webhooks
-    $router->post('/webhooks/paymob', [\Lume\Controllers\Api\WebhookController::class, 'paymob']);
+    $router->post('/webhooks/paymob', [\Axer\Controllers\Api\WebhookController::class, 'paymob']);
     
     // Protected routes
     $router->group([

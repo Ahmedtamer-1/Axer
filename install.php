@@ -1,13 +1,17 @@
 <?php
 
-// Lume v2 Installer Wizard
+// Axer CMS Installer Wizard
 session_start();
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 $basePath = __DIR__;
 $envPath = $basePath . '/config/.env';
 
 if (file_exists($envPath)) {
-    die("Lume is already installed. If you want to reinstall, please delete config/.env file first.");
+    die("Axer is already installed. If you want to reinstall, please delete config/.env file first.");
 }
 
 $step = $_GET['step'] ?? 1;
@@ -15,6 +19,10 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!hash_equals($_SESSION['csrf_token'], $_POST['_csrf'] ?? '')) {
+        die("CSRF Token Mismatch");
+    }
+    
     if ($step == 2) {
         $dbHost = $_POST['db_host'] ?? '127.0.0.1';
         $dbName = $_POST['db_name'] ?? '';
@@ -63,12 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     define('BASE_PATH', $basePath);
                 }
 
-                // Bootstrap the Lume App to register autoloader and bootstrap Config
+                // Bootstrap the Axer App to register autoloader and bootstrap Config
                 require_once BASE_PATH . '/app/Core/App.php';
-                $app = new \Lume\Core\App();
+                $app = new \Axer\Core\App();
 
                 // Run migrations
-                $migration = new \Lume\Database\Migration();
+                $migration = new \Axer\Database\Migration();
                 ob_start();
                 $migration->run(BASE_PATH . '/database/migrations');
                 ob_end_clean();
@@ -88,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Insert default settings
                 $defaultSettings = [
-                    ['group' => 'general', 'key' => 'store_name', 'value' => 'My Lume Store', 'type' => 'string'],
+                    ['group' => 'general', 'key' => 'store_name', 'value' => 'My Axer Store', 'type' => 'string'],
                     ['group' => 'general', 'key' => 'store_email', 'value' => $adminEmail, 'type' => 'string'],
                     ['group' => 'general', 'key' => 'currency', 'value' => 'USD', 'type' => 'string'],
                     ['group' => 'general', 'key' => 'currency_symbol', 'value' => '$', 'type' => 'string'],
@@ -101,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Activate default theme
-                \Lume\Services\ThemeService::activateTheme('default');
+                \Axer\Services\ThemeService::activateTheme('default');
 
                 // Insert default 'Home' page
                 $defaultBuilderData = json_encode([
@@ -109,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'id' => 'hero-1',
                         'type' => 'hero',
                         'settings' => [
-                            'title' => 'Welcome to Lume Storefront',
+                            'title' => 'Welcome to Axer Storefront',
                             'subtitle' => 'Fully customisable headless e-commerce CMS',
                             'button_text' => 'Shop Now',
                             'button_url' => '/products',
@@ -135,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([
                     'Home',
                     'home',
-                    '<h1>Welcome to Lume Store</h1><p>This is your brand new storefront built with Lume CMS.</p>',
+                    '<h1>Welcome to Axer Store</h1><p>This is your brand new storefront built with Axer CMS.</p>',
                     'page',
                     'published',
                     $defaultBuilderData
@@ -162,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lume v2 Installer</title>
+    <title>Axer Installer</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Outfit', sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
@@ -184,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="installer-card">
-        <h1>Lume Installer</h1>
+        <h1>Axer Installer</h1>
         
         <div class="steps">
             <div class="step <?= $step == 1 ? 'active' : '' ?>">1. Welcome</div>
@@ -198,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <?php if ($step == 1): ?>
-            <p style="text-align: center; color: #94a3b8; margin-bottom: 2rem;">Welcome to the Lume v2 installation wizard. This will help you set up your database and admin account.</p>
+            <p style="text-align: center; color: #94a3b8; margin-bottom: 2rem;">Welcome to the Axer installation wizard. This will help you set up your database and admin account.</p>
             <a href="install.php?step=2" class="btn">Start Installation</a>
         
         <?php elseif ($step == 2): ?>
@@ -238,13 +246,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Admin Password</label>
                     <input type="password" name="admin_pass" required>
                 </div>
-                <button type="submit" class="btn">Install Lume</button>
+                <button type="submit" class="btn">Install Axer</button>
             </form>
             
         <?php elseif ($step == 4): ?>
             <div class="alert alert-success">
                 <strong>Installation Complete!</strong><br><br>
-                Lume v2 has been successfully installed.
+                Axer CMS has been successfully installed.
             </div>
             <p style="text-align: center; color: #94a3b8; margin-bottom: 2rem; font-size: 0.875rem;">
                 For security reasons, please delete or rename <code>install.php</code> before going live.

@@ -1,9 +1,9 @@
 <?php
 
-namespace Lume\Controllers\Api;
+namespace Axer\Controllers\Api;
 
-use Lume\Core\Controller;
-use Lume\Core\Response;
+use Axer\Core\Controller;
+use Axer\Core\Response;
 
 class ApiController extends Controller
 {

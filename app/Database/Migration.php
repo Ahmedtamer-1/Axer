@@ -1,9 +1,9 @@
 <?php
 
-namespace Lume\Database;
+namespace Axer\Database;
 
-use Lume\Core\App;
-use Lume\Core\Config;
+use Axer\Core\App;
+use Axer\Core\Config;
 
 class Migration
 {

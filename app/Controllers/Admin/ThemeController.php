@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Controllers\Admin;
+namespace Axer\Controllers\Admin;
 
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Services\ThemeService;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Services\ThemeService;
 
 class ThemeController extends AdminController
 {

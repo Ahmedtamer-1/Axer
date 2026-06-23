@@ -1,6 +1,6 @@
 <?php
 
-namespace Lume\Template;
+namespace Axer\Template;
 
 class Lexer
 {

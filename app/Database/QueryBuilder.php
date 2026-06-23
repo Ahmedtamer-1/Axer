@@ -1,10 +1,10 @@
 <?php
 
-namespace Lume\Database;
+namespace Axer\Database;
 
 use PDO;
-use Lume\Core\App;
-use Lume\Core\Config;
+use Axer\Core\App;
+use Axer\Core\Config;
 
 class QueryBuilder
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Lume\Auth\Middleware;
+namespace Axer\Auth\Middleware;
 
-use Lume\Core\Middleware;
-use Lume\Core\Request;
-use Lume\Core\Response;
-use Lume\Database\QueryBuilder;
+use Axer\Core\Middleware;
+use Axer\Core\Request;
+use Axer\Core\Response;
+use Axer\Database\QueryBuilder;
 
 class AuthMiddleware implements Middleware
 {
