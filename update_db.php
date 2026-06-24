@@ -22,7 +22,11 @@ try {
     require_once BASE_PATH . '/app/Core/App.php';
     $app = new \Axer\Core\App();
 
-    echo "<h2>Axer Database Updater</h2>";
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+    }
+    
+    echo "<h2>Axer Database & Cache Updater</h2>";
     echo "<p>Checking for missing database updates...</p>";
 
     // Run migrations
