@@ -52,7 +52,7 @@ class ProductController extends AdminController
                         $slug .= '-' . time();
                     }
 
-                    $productId = QueryBuilder::table('products')->insert([
+                    $productId = QueryBuilder::table('products')->insertGetId([
                         'name' => $name,
                         'slug' => $slug,
                         'description' => $description,
