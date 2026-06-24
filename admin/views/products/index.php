@@ -68,8 +68,8 @@
                                 <a href="/admin/products/edit/<?= $product['id'] ?>" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;">
                                     <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Edit
                                 </a>
-                                <form method="POST" action="/admin/products/delete/<?= $product['id'] ?>
-    <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">" onsubmit="return confirm('Are you sure you want to delete this product?');" style="display: inline;">
+                                <form method="POST" action="/admin/products/delete/<?= $product['id'] ?>" onsubmit="return confirm('Are you sure you want to delete this product?');" style="display: inline;">
+                                    <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                                     <button type="submit" class="btn" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); color: var(--danger);">
                                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete
                                     </button>
