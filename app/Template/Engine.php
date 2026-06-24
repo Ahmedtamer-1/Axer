@@ -36,7 +36,7 @@ class Engine
         
         try {
             require $compiledFile;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             ob_end_clean();
             throw $e;
         }

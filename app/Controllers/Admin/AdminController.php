@@ -24,8 +24,8 @@ class AdminController extends Controller
             if (defined('APP_DEBUG') && APP_DEBUG) {
                 $_SESSION['admin_user'] = [
                     'id' => 1,
-                    'email' => 'admin@lume.com',
-                    'name' => 'Lume Administrator'
+                    'email' => 'admin@axer.com',
+                    'name' => 'Axer Administrator'
                 ];
             } else {
                 header('Location: /admin/login');

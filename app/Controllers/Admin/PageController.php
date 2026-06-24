@@ -226,7 +226,7 @@ class PageController extends AdminController
                 try {
                     $engine = new \Axer\Template\Engine([$themePath], BASE_PATH . '/storage/cache');
                     $html .= $engine->render("sections/{$type}", $settings);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $html .= "<div style='padding: 2rem; color: red; border: 1px dashed red;'>Error rendering {$type}: " . htmlspecialchars($e->getMessage()) . "</div>";
                 }
             } else {

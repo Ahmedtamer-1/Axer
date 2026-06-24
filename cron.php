@@ -12,9 +12,9 @@ if (php_sapi_name() !== 'cli') {
 
 require_once BASE_PATH . '/app/Core/App.php';
 
-$app = new \Lume\Core\App();
+$app = new \Axer\Core\App();
 
 // Dispatch cron event to any listening plugins or internal services
-\Lume\Core\Event::dispatch('cron.run');
+\Axer\Core\Event::dispatch('cron.run');
 
-echo "[" . date('Y-m-d H:i:s') . "] Lume cron jobs executed successfully.\n";
+echo "[" . date('Y-m-d H:i:s') . "] Axer cron jobs executed successfully.\n";
