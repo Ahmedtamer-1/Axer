@@ -68,23 +68,14 @@ class Migration
                     echo "Migrating: {$name}\n";
                     
                     try {
-                        $this->pdo->beginTransaction();
                         $migration->up($this->pdo);
                         
                         $stmt = $this->pdo->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
                         $stmt->execute([$name, $batch]);
                         
-                        $this->pdo->commit();
                         echo "Migrated:  {$name}\n";
                         $migrated = true;
                     } catch (\Exception $e) {
-                        if ($this->pdo->inTransaction()) {
-                            try {
-                                $this->pdo->rollBack();
-                            } catch (\Exception $rollbackError) {
-                                // Ignore rollback error caused by implicit commits
-                            }
-                        }
                         throw new \Exception("Error migrating {$name}: " . $e->getMessage(), 0, $e);
                     }
                 }

@@ -1,9 +1,10 @@
 <?php
 
-return new class extends \Axer\Database\Migration {
-    public function up(): void
+class CreateRateLimits
+{
+    public function up(\PDO $pdo): void
     {
-        $this->db->execute("
+        $pdo->exec("
             CREATE TABLE IF NOT EXISTS `rate_limits` (
                 `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 `ip_address` VARCHAR(45) NOT NULL,
@@ -17,8 +18,8 @@ return new class extends \Axer\Database\Migration {
         ");
     }
 
-    public function down(): void
+    public function down(\PDO $pdo): void
     {
-        $this->db->execute("DROP TABLE IF EXISTS `rate_limits`");
+        $pdo->exec("DROP TABLE IF EXISTS `rate_limits`");
     }
-};
+}

@@ -1,13 +1,15 @@
 <?php
 
-return new class extends \Axer\Database\Migration {
-    public function up(): void
+class UpdateProductVariantsSchema
+{
+    public function up(\PDO $pdo = null): void
     {
+        $pdo = $pdo ?? $this->pdo;
         // Add options_schema to products
-        $this->db->execute("ALTER TABLE `products` ADD COLUMN `options_schema` LONGTEXT DEFAULT NULL AFTER `tags`");
+        $pdo->exec("ALTER TABLE `products` ADD COLUMN `options_schema` LONGTEXT DEFAULT NULL AFTER `tags`");
         
         // Add multi-axis option columns, compare_price, and barcode to product_variants
-        $this->db->execute("ALTER TABLE `product_variants` 
+        $pdo->exec("ALTER TABLE `product_variants` 
             ADD COLUMN `option1_value` VARCHAR(255) DEFAULT NULL AFTER `name`,
             ADD COLUMN `option2_value` VARCHAR(255) DEFAULT NULL AFTER `option1_value`,
             ADD COLUMN `option3_value` VARCHAR(255) DEFAULT NULL AFTER `option2_value`,
@@ -17,11 +19,11 @@ return new class extends \Axer\Database\Migration {
 
         // Migrate existing variants: map color_name to option1 and size to option2
         // We'll build a default options_schema for products that have variants
-        $products = $this->db->query("SELECT DISTINCT product_id FROM product_variants")->fetchAll(\PDO::FETCH_ASSOC);
+        $products = $pdo->query("SELECT DISTINCT product_id FROM product_variants")->fetchAll(\PDO::FETCH_ASSOC);
         
         foreach ($products as $p) {
             $pid = (int)$p['product_id'];
-            $variants = $this->db->query("SELECT * FROM product_variants WHERE product_id = {$pid}")->fetchAll(\PDO::FETCH_ASSOC);
+            $variants = $pdo->query("SELECT * FROM product_variants WHERE product_id = {$pid}")->fetchAll(\PDO::FETCH_ASSOC);
             
             $hasColor = false;
             $hasSize = false;
@@ -51,9 +53,11 @@ return new class extends \Axer\Database\Migration {
                 }
                 
                 $schemaJson = json_encode($options);
-                $this->db->execute("UPDATE `products` SET `options_schema` = ? WHERE `id` = ?", [$schemaJson, $pid]);
+                $stmt = $pdo->prepare("UPDATE `products` SET `options_schema` = ? WHERE `id` = ?");
+                $stmt->execute([$schemaJson, $pid]);
                 
                 // Update variant rows
+                $updateStmt = $pdo->prepare("UPDATE `product_variants` SET `option1_value` = ?, `option2_value` = ? WHERE `id` = ?");
                 foreach ($variants as $v) {
                     $opt1 = null;
                     $opt2 = null;
@@ -64,21 +68,22 @@ return new class extends \Axer\Database\Migration {
                         $opt1 = $v['size'];
                     }
                     
-                    $this->db->execute("UPDATE `product_variants` SET `option1_value` = ?, `option2_value` = ? WHERE `id` = ?", [$opt1, $opt2, $v['id']]);
+                    $updateStmt->execute([$opt1, $opt2, $v['id']]);
                 }
             }
         }
     }
 
-    public function down(): void
+    public function down(\PDO $pdo = null): void
     {
-        $this->db->execute("ALTER TABLE `product_variants` 
+        $pdo = $pdo ?? $this->pdo;
+        $pdo->exec("ALTER TABLE `product_variants` 
             DROP COLUMN `option1_value`,
             DROP COLUMN `option2_value`,
             DROP COLUMN `option3_value`,
             DROP COLUMN `compare_price`,
             DROP COLUMN `barcode`
         ");
-        $this->db->execute("ALTER TABLE `products` DROP COLUMN `options_schema`");
+        $pdo->exec("ALTER TABLE `products` DROP COLUMN `options_schema`");
     }
-};
+}
