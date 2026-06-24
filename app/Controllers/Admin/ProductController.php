@@ -176,6 +176,54 @@ class ProductController extends AdminController
                             'stock' => $stock,
                             'status' => $status
                         ]);
+
+                        $payloadJson = $request->post('variants_payload');
+                        if (!empty($payloadJson)) {
+                            $payload = json_decode($payloadJson, true);
+                            if ($payload && isset($payload['options']) && isset($payload['variants'])) {
+                                $optionsSchema = json_encode($payload['options']);
+                                QueryBuilder::table('products')->where('id', $id)->update([
+                                    'options_schema' => $optionsSchema
+                                ]);
+                                
+                                $existingVariants = QueryBuilder::table('product_variants')->where('product_id', $id)->get();
+                                $existingIds = array_column($existingVariants, 'id');
+                                $keptIds = [];
+                                
+                                foreach ($payload['variants'] as $v) {
+                                    $isTemp = strpos((string)$v['id'], 'temp_') === 0;
+                                    
+                                    $data = [
+                                        'product_id' => $id,
+                                        'option1_value' => $v['option1_value'] ?: null,
+                                        'option2_value' => $v['option2_value'] ?: null,
+                                        'option3_value' => $v['option3_value'] ?: null,
+                                        'price_override' => ($v['price_override'] !== '' && $v['price_override'] !== null) ? $v['price_override'] : null,
+                                        'compare_price' => ($v['compare_price'] !== '' && $v['compare_price'] !== null) ? $v['compare_price'] : null,
+                                        'sku' => $v['sku'] ?: null,
+                                        'barcode' => $v['barcode'] ?: null,
+                                        'stock' => intval($v['stock']),
+                                        'weight' => ($v['weight'] !== '' && $v['weight'] !== null) ? $v['weight'] : null,
+                                        'image' => $v['image'] ?: null,
+                                        'color_hex' => $v['color_hex'] ?: null,
+                                    ];
+                                    
+                                    if ($isTemp) {
+                                        QueryBuilder::table('product_variants')->insert($data);
+                                    } else {
+                                        QueryBuilder::table('product_variants')->where('id', $v['id'])->update($data);
+                                        $keptIds[] = $v['id'];
+                                    }
+                                }
+                                
+                                // Delete removed variants
+                                $toDelete = array_diff($existingIds, $keptIds);
+                                foreach ($toDelete as $delId) {
+                                    QueryBuilder::table('product_variants')->where('id', $delId)->delete();
+                                }
+                            }
+                        }
+
                         return $this->redirect('/admin/products/edit/' . $id);
                     } catch (\Exception $e) {
                         $error = "Error updating product: " . $e->getMessage();

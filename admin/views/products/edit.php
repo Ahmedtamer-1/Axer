@@ -28,7 +28,7 @@
         
         <!-- Basic Details Form -->
         <div class="card">
-            <form method="POST" action="/admin/products/edit/<?= $product['id'] ?>" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <form id="product-form" method="POST" action="/admin/products/edit/<?= $product['id'] ?>" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                 <input type="hidden" name="action" value="update">
                 
@@ -75,64 +75,46 @@
         </div>
 
         <!-- Variants Management -->
+        <input type="hidden" name="variants_payload" id="variants_payload" value="" form="product-form">
+        
+        <!-- Layer 1: Options -->
         <div class="card">
-            <h3 style="margin-top: 0; margin-bottom: 1rem;">Product Variants</h3>
-            
-            <?php if (count($variants) > 0): ?>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2rem;">
-                <?php foreach ($variants as $variant): ?>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-main);">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <?php if ($variant['color_hex']): ?>
-                        <div style="width: 24px; height: 24px; border-radius: 50%; background-color: <?= htmlspecialchars($variant['color_hex']) ?>; border: 2px solid rgba(255,255,255,0.2);"></div>
-                        <?php endif; ?>
-                        <div>
-                            <strong><?= htmlspecialchars($variant['color_name'] ?: $variant['size']) ?></strong>
-                            <?php if ($variant['price_override']): ?>
-                                <span style="color: #10b981; margin-left: 0.5rem;">+$<?= number_format($variant['price_override'], 2) ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <form method="POST" action="/admin/products/edit/<?= $product['id'] ?>" style="margin: 0;">
-                        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                        <input type="hidden" name="action" value="delete_variant">
-                        <input type="hidden" name="variant_id" value="<?= $variant['id'] ?>">
-                        <button type="submit" class="btn" style="background: transparent; color: #ef4444; padding: 0.5rem;" onsubmit="return confirm('Delete this variant?');">
-                            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
-                        </button>
-                    </form>
-                </div>
-                <?php endforeach; ?>
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Variants</h3>
+            <div id="vm-options-card" style="border: 1px solid var(--border-color); border-radius: 0.5rem; overflow: hidden;">
+                <!-- Filled by JS -->
             </div>
-            <?php else: ?>
-                <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">No variants added yet. Add colors or sizes below.</p>
-            <?php endif; ?>
+        </div>
 
-            <!-- Add Variant Form -->
-            <form method="POST" action="/admin/products/edit/<?= $product['id'] ?>" style="background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 0.5rem;">
-                <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                <input type="hidden" name="action" value="add_variant">
-                <h4 style="margin-top: 0; margin-bottom: 1rem;">Add New Variant</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-size: 0.75rem; color: #94a3b8;">Color Name (e.g. Midnight Blue)</label>
-                        <input type="text" name="color_name" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--border-color); background: var(--bg-main); color: white;">
-                    </div>
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-size: 0.75rem; color: #94a3b8;">Color Hex (e.g. #1e3a8a)</label>
-                        <input type="color" name="color_hex" style="padding: 0; height: 34px; width: 100%; border-radius: 0.25rem; border: 1px solid var(--border-color); background: var(--bg-main);">
-                    </div>
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-size: 0.75rem; color: #94a3b8;">Size (e.g. XL)</label>
-                        <input type="text" name="size" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--border-color); background: var(--bg-main); color: white;">
-                    </div>
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-size: 0.75rem; color: #94a3b8;">Price Override (Optional)</label>
-                        <input type="number" step="0.01" name="price_override" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--border-color); background: var(--bg-main); color: white;">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-secondary" style="width: 100%;">Add Variant</button>
-            </form>
+        <!-- Layer 2: Variants Table -->
+        <div class="card" id="vm-variants-card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">Variant combinations</h3>
+                <span id="vm-variants-count" style="background: var(--bg-content); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500;"></span>
+            </div>
+            
+            <div id="vm-bulk-toolbar" style="display: none; padding: 0.5rem; background: var(--bg-content); border: 1px solid var(--border-color); border-bottom: none; border-radius: 0.5rem 0.5rem 0 0; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem;" onclick="window.vmBulkEditPrices()">Edit prices</button>
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem;" onclick="window.vmBulkUpdateStock()">Update stock</button>
+                <button type="button" class="btn" style="color: var(--danger); font-size: 0.75rem;" onclick="window.vmBulkDelete()">Delete selected</button>
+            </div>
+            
+            <div style="border: 1px solid var(--border-color); border-radius: 0.5rem; overflow: hidden; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="background: var(--bg-content); border-bottom: 1px solid var(--border-color);">
+                            <th style="padding: 0.75rem 1rem; width: 40px;"><input type="checkbox" id="vm-select-all"></th>
+                            <th style="padding: 0.75rem 1rem; font-weight: 500; color: var(--text-muted);">Variant</th>
+                            <th style="padding: 0.75rem 1rem; font-weight: 500; color: var(--text-muted);">Price</th>
+                            <th style="padding: 0.75rem 1rem; font-weight: 500; color: var(--text-muted);">Stock</th>
+                            <th style="padding: 0.75rem 1rem; font-weight: 500; color: var(--text-muted);">SKU</th>
+                            <th style="padding: 0.75rem 1rem;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="vm-variants-tbody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
@@ -205,4 +187,67 @@
     </div>
 </div>
 
+<!-- Slide-in Drawer -->
+<div id="vm-drawer-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 40; display: none; opacity: 0; transition: opacity 0.3s;"></div>
+<div id="vm-drawer" style="position: fixed; top: 0; right: -400px; bottom: 0; width: 400px; max-width: 100%; background: var(--bg-main); border-left: 1px solid var(--border-color); z-index: 50; transition: right 0.3s; display: flex; flex-direction: column;">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;" id="vm-drawer-title">Variant</h3>
+        <button type="button" id="vm-drawer-close" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i data-lucide="x"></i></button>
+    </div>
+    <div style="padding: 1.5rem; flex: 1; overflow-y: auto;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Price Override</label>
+            <input type="number" step="0.01" id="vm-drawer-price" class="vm-input" style="width: 100%;" placeholder="Leave blank to use base price">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Compare-at Price</label>
+            <input type="number" step="0.01" id="vm-drawer-compare-price" class="vm-input" style="width: 100%;" placeholder="0.00">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Stock Quantity</label>
+            <input type="number" id="vm-drawer-stock" class="vm-input" style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">SKU</label>
+            <input type="text" id="vm-drawer-sku" class="vm-input" style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Barcode</label>
+            <input type="text" id="vm-drawer-barcode" class="vm-input" style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Weight</label>
+            <input type="number" step="0.01" id="vm-drawer-weight" class="vm-input" style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label style="font-size: 0.875rem;">Variant Image</label>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <input type="hidden" id="vm-drawer-image" value="">
+                <div id="vm-drawer-image-preview" style="width: 60px; height: 60px; border-radius: 0.25rem; background: var(--bg-content); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="openMediaPicker((url) => {
+                    document.getElementById('vm-drawer-image').value = url;
+                    document.getElementById('vm-drawer-image-preview').innerHTML = '<img src=&quot;' + url + '&quot; style=&quot;width:100%; height:100%; object-fit:cover;&quot;>';
+                })">Choose Image</button>
+            </div>
+        </div>
+    </div>
+    <div style="padding: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="window.vmSaveDrawer()">Done</button>
+    </div>
+</div>
+
+<style>
+.vm-input {
+    padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; background: var(--bg-main); color: var(--text-main);
+}
+#vm-drawer.active { right: 0; }
+#vm-drawer-overlay.active { display: block; opacity: 1; }
+</style>
+
+<script>
+    window.INITIAL_OPTIONS = <?= $product['options_schema'] ? $product['options_schema'] : '[]' ?>;
+    window.INITIAL_VARIANTS = <?= json_encode($variants) ?>;
+</script>
 <script src="/admin/assets/js/media-picker.js"></script>
+<script src="/admin/assets/js/product-variants.js"></script>

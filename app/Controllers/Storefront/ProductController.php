@@ -84,9 +84,16 @@ class ProductController
             ->orderBy('sort_order', 'ASC')
             ->get();
             
+        $optionsSchema = json_decode($product['options_schema'] ?? '[]', true) ?: [];
+        
         // Format variants
         foreach ($variants as &$v) {
-            $v['display_name'] = htmlspecialchars($v['color_name'] ?: $v['size']);
+            $labels = array_filter([$v['option1_value'], $v['option2_value'], $v['option3_value']]);
+            $v['display_name'] = htmlspecialchars(implode(' / ', $labels));
+            // Fallback for legacy
+            if (empty($labels) && (!empty($v['color_name']) || !empty($v['size']))) {
+                $v['display_name'] = htmlspecialchars($v['color_name'] ?: $v['size']);
+            }
         }
 
         // Fetch images
@@ -98,7 +105,9 @@ class ProductController
         return $this->render('products/show', [
             'page_title' => $product['name'],
             'product' => $product,
+            'options' => $optionsSchema,
             'variants' => $variants,
+            'variants_json' => json_encode($variants),
             'has_variants' => count($variants) > 0,
             'images' => $images,
             'images_json' => json_encode($images)

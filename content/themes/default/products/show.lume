@@ -136,8 +136,8 @@
         variantIdInput.value = variantId;
 
         // Update Price
-        if (priceOverride && priceOverride !== 'null') {
-            priceDisplay.textContent = parseFloat(basePrice + parseFloat(priceOverride)).toFixed(2);
+        if (priceOverride && priceOverride !== 'null' && priceOverride !== '') {
+            priceDisplay.textContent = parseFloat(priceOverride).toFixed(2);
         } else {
             priceDisplay.textContent = parseFloat(basePrice).toFixed(2);
         }
