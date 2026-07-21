@@ -3,6 +3,9 @@
 use Axer\Core\Router;
 use Axer\Controllers\Api\ProductController;
 use Axer\Controllers\Api\CartController;
+use Axer\Controllers\Api\OrderController;
+use Axer\Controllers\Api\UserController;
+use Axer\Controllers\Api\WebhookController;
 use Axer\Auth\Middleware\CorsMiddleware;
 use Axer\Auth\Middleware\AuthMiddleware;
 
@@ -21,7 +24,7 @@ $router->group([
     $router->post('/cart/add', [CartController::class, 'add']);
     
     // Webhooks
-    $router->post('/webhooks/paymob', [\Axer\Controllers\Api\WebhookController::class, 'paymob']);
+    $router->post('/webhooks/paymob', [WebhookController::class, 'paymob']);
     
     // Protected routes
     $router->group([

@@ -1,110 +1,80 @@
 <div class="header-bar">
     <div class="header-title">
-        <h1>Customize Theme - <?= htmlspecialchars($theme['name']) ?></h1>
-        <p>Edit global styles, colors, and typography settings.</p>
+        <h1>Customize Theme: <?= htmlspecialchars($theme['name']) ?></h1>
+        <p>Modify colors, typography, and storefront layout settings.</p>
     </div>
     <div class="header-actions">
         <a href="/admin/themes" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Back to Themes</a>
     </div>
 </div>
 
-<style>
-    .customizer-layout {
-        display: grid;
-        grid-template-columns: 360px 1fr;
-        gap: 1.5rem;
-        align-items: start;
-    }
-    .customizer-sidebar {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-    .form-section-title {
-        font-size: 0.8125rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-muted);
-        margin: 1.5rem 0 1rem;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 0.5rem;
-    }
-    .form-section-title:first-of-type {
-        margin-top: 0;
-    }
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-    .form-group label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        font-size: 0.875rem;
-    }
-    .form-control {
-        width: 100%;
-        padding: 0.625rem 0.875rem;
-        border-radius: 0.375rem;
-        border: 1px solid var(--border-color);
-        font-family: var(--font-main);
-        font-size: 0.875rem;
-    }
-    .form-control:focus {
-        outline: none;
-        border-color: var(--primary);
-    }
-    .preview-pane {
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        height: 600px;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-    }
-</style>
-
-<div class="customizer-layout">
-    <div class="customizer-sidebar">
-        <form action="/admin/themes/customize/<?= $theme['slug'] ?>" method="POST">
-            <?php foreach ($theme['settings_schema'] as $section): ?>
-                <div class="form-section-title"><?= htmlspecialchars($section['name']) ?></div>
-                <?php foreach ($section['settings'] as $setting): ?>
-                    <?php 
-                    $val = $theme['settings'][$setting['name']] ?? '';
-                    ?>
-                    <div class="form-group">
-                        <label for="settings_<?= $setting['name'] ?>"><?= htmlspecialchars($setting['label']) ?></label>
-                        <?php if ($setting['type'] === 'select'): ?>
-                            <select id="settings_<?= $setting['name'] ?>" name="settings[<?= $setting['name'] ?>]" class="form-control">
-                                <?php foreach ($setting['options'] as $opt): ?>
-                                    <option value="<?= $opt ?>" <?= $opt == $val ? 'selected' : '' ?>><?= htmlspecialchars($opt) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        <?php elseif ($setting['type'] === 'color'): ?>
-                            <input type="color" id="settings_<?= $setting['name'] ?>" name="settings[<?= $setting['name'] ?>]" class="form-control" style="height: 40px; padding: 2px;" value="<?= htmlspecialchars($val) ?>">
-                        <?php else: ?>
-                            <input type="text" id="settings_<?= $setting['name'] ?>" name="settings[<?= $setting['name'] ?>]" class="form-control" value="<?= htmlspecialchars($val) ?>">
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
-            
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;"><i data-lucide="save"></i> Save Options</button>
-        </form>
-    </div>
+<form method="POST" action="/admin/themes/customize/<?= htmlspecialchars($theme['slug']) ?>">
+    <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
     
-    <div class="preview-pane">
-        <!-- In a real environment, this can load a live preview of the frontpage -->
-        <div style="text-align: center;">
-            <i data-lucide="eye" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
-            <p>Theme Settings Customizer Panel.</p>
-            <p style="font-size:0.75rem; margin-top: 0.25rem;">Preview will reflect on your actual shopfront instantly upon saving.</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <!-- Colors Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="palette"></i> Theme Colors
+            </h3>
+            
+            <?php 
+            $colors = $theme['settings']['colors'] ?? [
+                'primary' => '#6366f1',
+                'secondary' => '#1e293b',
+                'background' => '#ffffff',
+                'text' => '#1e293b'
+            ];
+            foreach ($colors as $key => $val): 
+            ?>
+                <div class="form-group">
+                    <label class="form-label"><?= ucfirst($key) ?> Color</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="color" name="settings[colors][<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($val) ?>" style="width: 45px; height: 40px; border: 1px solid var(--border-color); border-radius: 0.375rem; cursor: pointer;">
+                        <input type="text" class="form-control" value="<?= htmlspecialchars($val) ?>" readonly style="font-family: monospace;">
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Typography & Layout Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="type"></i> Typography & Layout
+            </h3>
+
+            <?php 
+            $typo = $theme['settings']['typography'] ?? ['heading_font' => 'Outfit', 'body_font' => 'Outfit'];
+            ?>
+            <div class="form-group">
+                <label class="form-label">Heading Font</label>
+                <select name="settings[typography][heading_font]" class="form-control">
+                    <option value="Outfit" <?= ($typo['heading_font'] ?? '') === 'Outfit' ? 'selected' : '' ?>>Outfit</option>
+                    <option value="Inter" <?= ($typo['heading_font'] ?? '') === 'Inter' ? 'selected' : '' ?>>Inter</option>
+                    <option value="Roboto" <?= ($typo['heading_font'] ?? '') === 'Roboto' ? 'selected' : '' ?>>Roboto</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Body Font</label>
+                <select name="settings[typography][body_font]" class="form-control">
+                    <option value="Outfit" <?= ($typo['body_font'] ?? '') === 'Outfit' ? 'selected' : '' ?>>Outfit</option>
+                    <option value="Inter" <?= ($typo['body_font'] ?? '') === 'Inter' ? 'selected' : '' ?>>Inter</option>
+                    <option value="Roboto" <?= ($typo['body_font'] ?? '') === 'Roboto' ? 'selected' : '' ?>>Roboto</option>
+                </select>
+            </div>
+
+            <?php 
+            $layout = $theme['settings']['layout'] ?? ['container_width' => '1200px'];
+            ?>
+            <div class="form-group">
+                <label class="form-label">Container Width</label>
+                <input type="text" class="form-control" name="settings[layout][container_width]" value="<?= htmlspecialchars($layout['container_width'] ?? '1200px') ?>">
+            </div>
         </div>
     </div>
-</div>
+
+    <div style="margin-top: 1rem; text-align: right;">
+        <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;"><i data-lucide="save"></i> Save Theme Settings</button>
+    </div>
+</form>

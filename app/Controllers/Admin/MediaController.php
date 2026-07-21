@@ -27,7 +27,7 @@ class MediaController extends AdminController
         $this->checkAuth($request);
 
         if (isset($_FILES['files']) && is_array($_FILES['files']['error'])) {
-            $uploadDir = BASE_PATH . '/uploads/';
+            $uploadDir = BASE_PATH . '/content/uploads/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -38,7 +38,6 @@ class MediaController extends AdminController
                 if ($_FILES['files']['error'][$i] === UPLOAD_ERR_OK) {
                     $originalName = $_FILES['files']['name'][$i];
                     $tmpName = $_FILES['files']['tmp_name'][$i];
-                    $fileSize = $_FILES['files']['size'][$i];
                     $mimeType = mime_content_type($tmpName);
                     
                     $fileExtension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
@@ -48,7 +47,6 @@ class MediaController extends AdminController
                     // Image Compression using GD if it's an image
                     $isCompressed = false;
                     if (strpos($mimeType, 'image/') === 0 && in_array($fileExtension, ['jpg', 'jpeg', 'png', 'webp'])) {
-                        // Max dimensions to scale down huge images
                         $maxWidth = 1920;
                         $maxHeight = 1080;
                         
@@ -71,7 +69,6 @@ class MediaController extends AdminController
                             if ($imageTmp) {
                                 $newImage = imagecreatetruecolor($newWidth, $newHeight);
                                 
-                                // Preserve transparency for PNG and WebP
                                 if ($fileExtension === 'png' || $fileExtension === 'webp') {
                                     imagealphablending($newImage, false);
                                     imagesavealpha($newImage, true);
@@ -81,15 +78,14 @@ class MediaController extends AdminController
                                 
                                 imagecopyresampled($newImage, $imageTmp, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
                                 
-                                // Save compressed image
                                 if ($fileExtension === 'jpg' || $fileExtension === 'jpeg') {
-                                    imagejpeg($newImage, $targetFile, 80); // 80% quality
+                                    imagejpeg($newImage, $targetFile, 85);
                                     $isCompressed = true;
                                 } elseif ($fileExtension === 'png') {
-                                    imagepng($newImage, $targetFile, 8); // 8 compression level
+                                    imagepng($newImage, $targetFile, 8);
                                     $isCompressed = true;
                                 } elseif ($fileExtension === 'webp') {
-                                    imagewebp($newImage, $targetFile, 80); // 80% quality
+                                    imagewebp($newImage, $targetFile, 85);
                                     $isCompressed = true;
                                 }
                                 
@@ -99,7 +95,6 @@ class MediaController extends AdminController
                         }
                     }
                     
-                    // Fallback to standard upload if not compressed
                     if (!$isCompressed) {
                         move_uploaded_file($tmpName, $targetFile);
                     }
@@ -107,9 +102,9 @@ class MediaController extends AdminController
                     QueryBuilder::table('media')->insert([
                         'filename' => $fileName,
                         'original_name' => basename($originalName),
-                        'path' => '/uploads/' . $fileName,
+                        'path' => '/content/uploads/' . $fileName,
                         'mime_type' => $mimeType,
-                        'size' => filesize($targetFile), // Get new compressed size
+                        'size' => filesize($targetFile),
                         'folder' => 'general'
                     ]);
                 }
@@ -129,13 +124,9 @@ class MediaController extends AdminController
             if ($media) {
                 $filePath = BASE_PATH . $media['path'];
                 if (file_exists($filePath)) {
-                    unlink($filePath);
+                    @unlink($filePath);
                 }
                 QueryBuilder::table('media')->where('id', $id)->delete();
-                
-                // Note: We leave product_images references intact to avoid 
-                // breaking product listings, they will just show a broken image 
-                // icon until the user uploads a new one, but ideally we'd clean them up.
             }
         }
 

@@ -4,55 +4,101 @@ namespace Axer\Controllers\Admin;
 
 use Axer\Core\Request;
 use Axer\Core\Response;
+use Axer\Plugin\PluginManager;
 
 class PluginController extends AdminController
 {
+    protected PluginManager $manager;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->manager = new PluginManager();
+    }
+
     public function index(Request $request): Response
     {
         $this->checkAuth($request);
         
-        $pluginsDir = BASE_PATH . '/content/plugins';
-        $installedPlugins = [];
-        
-        if (is_dir($pluginsDir)) {
-            $items = array_diff(scandir($pluginsDir), ['.', '..']);
-            foreach ($items as $item) {
-                if (is_dir($pluginsDir . '/' . $item) && file_exists($pluginsDir . '/' . $item . '/plugin.json')) {
-                    $manifest = json_decode(file_get_contents($pluginsDir . '/' . $item . '/plugin.json'), true);
-                    $installedPlugins[$item] = $manifest;
-                }
+        $installedPlugins = $this->manager->getInstalledPlugins();
+
+        return $this->renderAdmin('plugins/index', [
+            'title' => 'Installed Plugins',
+            'installedPlugins' => $installedPlugins
+        ]);
+    }
+
+    public function marketplace(Request $request): Response
+    {
+        $this->checkAuth($request);
+
+        $catalogFile = BASE_PATH . '/content/plugin-catalog.json';
+        $catalog = [];
+        if (file_exists($catalogFile)) {
+            $catalog = json_decode(file_get_contents($catalogFile), true) ?: [];
+        }
+
+        $installed = array_column($this->manager->getInstalledPlugins(), 'slug');
+
+        foreach ($catalog as &$item) {
+            $item['is_installed'] = in_array($item['slug'], $installed);
+        }
+
+        return $this->renderAdmin('plugins/marketplace', [
+            'title' => 'Plugin Marketplace',
+            'catalog' => $catalog
+        ]);
+    }
+
+    public function activate(Request $request, string $slug): Response
+    {
+        $this->checkAuth($request);
+        $this->manager->activate($slug);
+        return $this->redirect('/admin/plugins');
+    }
+
+    public function deactivate(Request $request, string $slug): Response
+    {
+        $this->checkAuth($request);
+        $this->manager->deactivate($slug);
+        return $this->redirect('/admin/plugins');
+    }
+
+    public function settings(Request $request, string $slug): Response
+    {
+        $this->checkAuth($request);
+
+        $plugins = $this->manager->getInstalledPlugins();
+        $target = null;
+        foreach ($plugins as $p) {
+            if ($p['slug'] === $slug) {
+                $target = $p;
+                break;
             }
         }
 
-        // Mock marketplace plugins for Phase 13
-        $marketplacePlugins = [
-            [
-                'id' => 'lume-seo',
-                'name' => 'Lume SEO Pro',
-                'description' => 'Advanced SEO tools, sitemap generator, and meta tag manager for your storefront.',
-                'price' => '$19.00',
-                'developer' => 'Lume Team'
-            ],
-            [
-                'id' => 'lume-abandoned-cart',
-                'name' => 'Abandoned Cart Recovery',
-                'description' => 'Automatically email customers who leave their checkout process incomplete.',
-                'price' => '$29.00',
-                'developer' => 'Lume Team'
-            ],
-            [
-                'id' => 'lume-reviews',
-                'name' => 'Product Reviews',
-                'description' => 'Allow customers to leave reviews and ratings on your products.',
-                'price' => 'Free',
-                'developer' => 'Lume Team'
-            ]
-        ];
+        if (!$target) {
+            return $this->redirect('/admin/plugins');
+        }
 
-        return $this->renderAdmin('plugins/index', [
-            'title' => 'Plugins & Marketplace',
-            'installedPlugins' => $installedPlugins,
-            'marketplacePlugins' => $marketplacePlugins
+        // Fetch settings schema from main plugin class
+        $schema = [];
+        $className = 'Axer\\Plugins\\' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $slug))) . '\\Plugin';
+        if (class_exists($className)) {
+            $instance = new $className($target['settings'] ?? []);
+            $schema = $instance->getSettingsSchema();
+        }
+
+        if ($request->method() === 'POST') {
+            $settings = $request->post('settings') ?? [];
+            $this->manager->savePluginSettings($slug, $settings);
+            return $this->redirect('/admin/plugins/settings/' . $slug);
+        }
+
+        return $this->renderAdmin('plugins/settings', [
+            'title' => 'Plugin Settings — ' . $target['name'],
+            'plugin' => $target,
+            'schema' => $schema
         ]);
     }
 }

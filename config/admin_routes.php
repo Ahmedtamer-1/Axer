@@ -12,20 +12,23 @@ $router->group([
 ], function (Router $router) {
     
     // Auth
-    $router->get('/login', [\Axer\Controllers\Admin\AuthController::class, 'login']);
+    $router->get('/login', [\Axer\Controllers\Admin\AuthController::class, 'showLogin']);
     $router->post('/login', [\Axer\Controllers\Admin\AuthController::class, 'login']);
     $router->get('/logout', [\Axer\Controllers\Admin\AuthController::class, 'logout']);
 
     // Dashboard
     $router->get('/dashboard', [DashboardController::class, 'index']);
 
-    // Products CRUD
+    // Products CRUD & Spreadsheet API
     $router->get('/products', [\Axer\Controllers\Admin\ProductController::class, 'index']);
     $router->get('/products/create', [\Axer\Controllers\Admin\ProductController::class, 'create']);
     $router->post('/products/create', [\Axer\Controllers\Admin\ProductController::class, 'create']);
     $router->get('/products/edit/{id}', [\Axer\Controllers\Admin\ProductController::class, 'edit']);
     $router->post('/products/edit/{id}', [\Axer\Controllers\Admin\ProductController::class, 'edit']);
     $router->post('/products/delete/{id}', [\Axer\Controllers\Admin\ProductController::class, 'delete']);
+    $router->post('/api/products/update/{id}', [\Axer\Controllers\Admin\ProductApiController::class, 'updateField']);
+    $router->post('/api/products/quick-create', [\Axer\Controllers\Admin\ProductApiController::class, 'quickCreate']);
+    $router->post('/api/products/bulk-delete', [\Axer\Controllers\Admin\ProductApiController::class, 'bulkDelete']);
 
     // Orders CRUD
     $router->get('/orders', [\Axer\Controllers\Admin\OrderController::class, 'index']);
@@ -67,5 +70,10 @@ $router->group([
 
     // Plugins & Marketplace
     $router->get('/plugins', [\Axer\Controllers\Admin\PluginController::class, 'index']);
+    $router->get('/plugins/marketplace', [\Axer\Controllers\Admin\PluginController::class, 'marketplace']);
+    $router->post('/plugins/activate/{slug}', [\Axer\Controllers\Admin\PluginController::class, 'activate']);
+    $router->post('/plugins/deactivate/{slug}', [\Axer\Controllers\Admin\PluginController::class, 'deactivate']);
+    $router->get('/plugins/settings/{slug}', [\Axer\Controllers\Admin\PluginController::class, 'settings']);
+    $router->post('/plugins/settings/{slug}', [\Axer\Controllers\Admin\PluginController::class, 'settings']);
 
 });

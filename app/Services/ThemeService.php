@@ -3,6 +3,7 @@
 namespace Axer\Services;
 
 use Axer\Database\QueryBuilder;
+use Axer\Template\Engine;
 
 class ThemeService
 {
@@ -48,6 +49,54 @@ class ThemeService
             'author_url' => $json['author_url'] ?? '',
             'settings' => $json['settings'] ?? [],
             'settings_schema' => $json['settings_schema'] ?? []
+        ];
+    }
+
+    public static function render(string $template, array $data = []): string
+    {
+        $theme = self::getActiveTheme();
+        $slug = $theme ? $theme['slug'] : 'default';
+        $themePath = BASE_PATH . '/content/themes/' . $slug;
+        $cachePath = BASE_PATH . '/storage/cache/templates';
+
+        if (!is_dir($cachePath)) {
+            @mkdir($cachePath, 0777, true);
+        }
+
+        $engine = new Engine([$themePath], $cachePath);
+
+        $context = array_merge(self::getGlobalContext($theme), $data);
+
+        foreach ($context as $key => $value) {
+            $engine->addGlobal($key, $value);
+        }
+
+        return $engine->render($template, $data);
+    }
+
+    public static function getGlobalContext(?array $theme = null): array
+    {
+        if (!$theme) {
+            $theme = self::getActiveTheme();
+        }
+
+        $cartCount = 0;
+        if (session_status() !== PHP_SESSION_NONE && !empty($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $cartCount += $item['quantity'] ?? 1;
+            }
+        }
+
+        return [
+            'store' => [
+                'name' => 'Axer Store',
+                'currency' => 'EGP',
+                'currency_symbol' => 'EGP '
+            ],
+            'theme' => $theme['settings'] ?? [],
+            'cart_count' => $cartCount,
+            'current_user' => $_SESSION['user'] ?? $_SESSION['admin_user'] ?? null,
+            'csrf_token' => $_SESSION['csrf_token'] ?? ''
         ];
     }
 

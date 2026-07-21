@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "paymob-gateway",
+    "name": "Paymob Accept Gateway",
+    "description": "Accept Card, Mobile Wallet, and Installments via Paymob Accept v2.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "payment",
+    "icon": "credit-card"
+  },
+  {
+    "slug": "meta-pixel",
+    "name": "Meta (Facebook) Pixel & CAPI",
+    "description": "Client-side Facebook Pixel & server-side Conversions API integration.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "analytics",
+    "icon": "activity"
+  },
+  {
+    "slug": "tiktok-pixel",
+    "name": "TikTok Pixel & Events API",
+    "description": "Client & Server-side TikTok Events tracking for store conversions.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "analytics",
+    "icon": "video"
+  },
+  {
+    "slug": "google-ads",
+    "name": "Google Ads & GTM Integration",
+    "description": "Track purchase conversions and attach Google Tag Manager.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "analytics",
+    "icon": "target"
+  },
+  {
+    "slug": "google-oauth",
+    "name": "Google OAuth Login",
+    "description": "Allow customers to sign in seamlessly with their Google account.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "auth",
+    "icon": "user-check"
+  },
+  {
+    "slug": "facebook-login",
+    "name": "Facebook Social Login",
+    "description": "Allow customers to sign in using Facebook OAuth 2.0.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "category": "auth",
+    "icon": "facebook"
+  }
+]

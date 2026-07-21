@@ -5,8 +5,8 @@
 ?>
 <div class="header-bar">
     <div class="header-title">
-        <h1>Settings</h1>
-        <p>Configure your shop identity, payments, and tracking pixels.</p>
+        <h1>Store Settings</h1>
+        <p>Configure core shop identity, currency, and store configuration.</p>
     </div>
 </div>
 
@@ -22,155 +22,51 @@
     </div>
 <?php endif; ?>
 
-<style>
-    .tabs {
-        display: flex;
-        gap: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 1.5rem;
-    }
-    .tab {
-        padding: 0.75rem 1rem;
-        cursor: pointer;
-        font-weight: 500;
-        color: var(--text-muted);
-        border-bottom: 2px solid transparent;
-    }
-    .tab.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
-    }
-    .tab-content {
-        display: none;
-    }
-    .tab-content.active {
-        display: block;
-    }
-</style>
-
 <div class="card" style="max-width: 800px;">
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('general')">General</div>
-        <div class="tab" onclick="switchTab('payments')">Payments</div>
-        <div class="tab" onclick="switchTab('pixels')">Tracking Pixels</div>
-    </div>
-
     <form method="POST" action="/admin/settings" style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
         
-        <!-- General Settings Tab -->
-        <div id="general" class="tab-content active">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Store Name</label>
-                    <input type="text" name="settings[general][store_name]" value="<?= htmlspecialchars($settings['general']['store_name'] ?? '') ?>" required style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                </div>
-                
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Store Email</label>
-                    <input type="email" name="settings[general][store_email]" value="<?= htmlspecialchars($settings['general']['store_email'] ?? '') ?>" required style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                </div>
+        <h3 style="font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="store"></i> Store Information
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Store Name</label>
+                <input type="text" class="form-control" name="settings[general][store_name]" value="<?= htmlspecialchars($settings['general']['store_name'] ?? 'Axer Store') ?>" required>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Currency</label>
-                    <select name="settings[general][currency]" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem; background: white;">
-                        <option value="USD" <?= ($settings['general']['currency'] ?? '') === 'USD' ? 'selected' : '' ?>>USD (US Dollar)</option>
-                        <option value="EGP" <?= ($settings['general']['currency'] ?? '') === 'EGP' ? 'selected' : '' ?>>EGP (Egyptian Pound)</option>
-                        <option value="EUR" <?= ($settings['general']['currency'] ?? '') === 'EUR' ? 'selected' : '' ?>>EUR (Euro)</option>
-                        <option value="GBP" <?= ($settings['general']['currency'] ?? '') === 'GBP' ? 'selected' : '' ?>>GBP (British Pound)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Currency Symbol</label>
-                    <input type="text" name="settings[general][currency_symbol]" value="<?= htmlspecialchars($settings['general']['currency_symbol'] ?? '') ?>" required style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Font Family</label>
-                    <select name="settings[general][font_family]" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem; background: white;">
-                        <option value="Outfit" <?= ($settings['general']['font_family'] ?? '') === 'Outfit' ? 'selected' : '' ?>>Outfit</option>
-                        <option value="Inter" <?= ($settings['general']['font_family'] ?? '') === 'Inter' ? 'selected' : '' ?>>Inter</option>
-                        <option value="Roboto" <?= ($settings['general']['font_family'] ?? '') === 'Roboto' ? 'selected' : '' ?>>Roboto</option>
-                        <option value="Georgia" <?= ($settings['general']['font_family'] ?? '') === 'Georgia' ? 'selected' : '' ?>>Georgia</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Primary Branding Color</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="color" name="settings[general][primary_color]" value="<?= htmlspecialchars($settings['general']['primary_color'] ?? '#6366f1') ?>" style="border: 1px solid var(--border-color); padding: 0; border-radius: 0.25rem; width: 45px; height: 40px; cursor: pointer;">
-                        <input type="text" id="primary_color_text" value="<?= htmlspecialchars($settings['general']['primary_color'] ?? '#6366f1') ?>" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem; flex-grow: 1;" oninput="document.querySelector('input[type=color]').value = this.value">
-                    </div>
-                </div>
+            
+            <div class="form-group">
+                <label class="form-label">Store Email</label>
+                <input type="email" class="form-control" name="settings[general][store_email]" value="<?= htmlspecialchars($settings['general']['store_email'] ?? 'admin@axer.com') ?>" required>
             </div>
         </div>
 
-        <!-- Payments Tab -->
-        <div id="payments" class="tab-content">
-            <h3 style="margin-bottom: 1rem; color: var(--text-main);">Paymob Integration</h3>
-            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Configure your Paymob credentials to accept online card payments.</p>
-            
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">API Key</label>
-                <input type="password" name="settings[payments][paymob_api_key]" value="<?= htmlspecialchars($settings['payments']['paymob_api_key'] ?? '') ?>" placeholder="Enter Paymob API Key" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Integration ID</label>
-                    <input type="text" name="settings[payments][paymob_integration_id]" value="<?= htmlspecialchars($settings['payments']['paymob_integration_id'] ?? '') ?>" placeholder="e.g. 123456" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                </div>
-                
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Iframe ID</label>
-                    <input type="text" name="settings[payments][paymob_iframe_id]" value="<?= htmlspecialchars($settings['payments']['paymob_iframe_id'] ?? '') ?>" placeholder="e.g. 123456" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Default Currency</label>
+                <select name="settings[general][currency]" class="form-control">
+                    <option value="EGP" <?= ($settings['general']['currency'] ?? 'EGP') === 'EGP' ? 'selected' : '' ?>>EGP (Egyptian Pound)</option>
+                    <option value="USD" <?= ($settings['general']['currency'] ?? '') === 'USD' ? 'selected' : '' ?>>USD (US Dollar)</option>
+                    <option value="EUR" <?= ($settings['general']['currency'] ?? '') === 'EUR' ? 'selected' : '' ?>>EUR (Euro)</option>
+                    <option value="SAR" <?= ($settings['general']['currency'] ?? '') === 'SAR' ? 'selected' : '' ?>>SAR (Saudi Riyal)</option>
+                    <option value="AED" <?= ($settings['general']['currency'] ?? '') === 'AED' ? 'selected' : '' ?>>AED (UAE Dirham)</option>
+                </select>
             </div>
             
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1.5rem;">
-                <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">HMAC Secret</label>
-                <input type="password" name="settings[payments][paymob_hmac]" value="<?= htmlspecialchars($settings['payments']['paymob_hmac'] ?? '') ?>" placeholder="Enter HMAC secret for webhook verification" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
+            <div class="form-group">
+                <label class="form-label">Currency Symbol</label>
+                <input type="text" class="form-control" name="settings[general][currency_symbol]" value="<?= htmlspecialchars($settings['general']['currency_symbol'] ?? 'EGP ') ?>" required>
             </div>
         </div>
 
-        <!-- Pixels Tab -->
-        <div id="pixels" class="tab-content">
-            <h3 style="margin-bottom: 1rem; color: var(--text-main);">Ad Pixels & Tracking</h3>
-            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Set up your tracking pixels for Facebook, TikTok, and Google.</p>
-            
-            <div style="margin-bottom: 2rem;">
-                <h4 style="margin-bottom: 0.5rem;">Facebook / Meta</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">FB Pixel ID</label>
-                        <input type="text" name="settings[pixels][fb_pixel_id]" value="<?= htmlspecialchars($settings['pixels']['fb_pixel_id'] ?? '') ?>" placeholder="Enter FB Pixel ID" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                    </div>
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">CAPI Access Token</label>
-                        <input type="password" name="settings[pixels][fb_access_token]" value="<?= htmlspecialchars($settings['pixels']['fb_access_token'] ?? '') ?>" placeholder="Optional Conversions API Token" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                    </div>
+        <div class="card" style="background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); margin-top: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 0.25rem;"><i data-lucide="plug" style="vertical-align: middle;"></i> Payment & Integration Extensions</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Integrations (Paymob, Pixels, Social OAuth) are managed as plug-and-play extensions.</p>
                 </div>
-            </div>
-
-            <div>
-                <h4 style="margin-bottom: 0.5rem;">TikTok</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">TikTok Pixel ID</label>
-                        <input type="text" name="settings[pixels][tiktok_pixel_id]" value="<?= htmlspecialchars($settings['pixels']['tiktok_pixel_id'] ?? '') ?>" placeholder="Enter TikTok Pixel ID" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                    </div>
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.875rem; color: var(--text-main);">Events API Access Token</label>
-                        <input type="password" name="settings[pixels][tiktok_access_token]" value="<?= htmlspecialchars($settings['pixels']['tiktok_access_token'] ?? '') ?>" placeholder="Optional Events API Token" style="padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.875rem;">
-                    </div>
-                </div>
+                <a href="/admin/plugins" class="btn btn-secondary" style="font-size: 0.8rem;"><i data-lucide="arrow-right"></i> Manage Plugins</a>
             </div>
         </div>
 
@@ -181,17 +77,3 @@
         </div>
     </form>
 </div>
-
-<script>
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(tabId).classList.add('active');
-        event.target.classList.add('active');
-    }
-
-    document.querySelector('input[type=color]').addEventListener('input', function(e) {
-        document.getElementById('primary_color_text').value = e.target.value;
-    });
-</script>

@@ -1,68 +1,64 @@
-<?php
-/** @var array $media */
-?>
 <div class="header-bar">
     <div class="header-title">
         <h1>Media Library</h1>
-        <p>Manage all your uploaded images and files. (Total: <?= count($media) ?> files)</p>
-    </div>
-    <div class="header-actions" style="display: flex; gap: 1rem;">
-        <form method="POST" action="/admin/media/upload" enctype="multipart/form-data" style="display: flex; gap: 1rem; margin: 0;" id="upload-form">
-            <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-            <input type="file" name="files[]" id="media-upload" accept="image/*" multiple style="display: none;" onchange="document.getElementById('upload-btn-text').innerText = 'Uploading...'; this.form.submit()">
-            <label for="media-upload" class="btn btn-primary" style="cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 0.5rem;" id="upload-btn-text">
-                <i data-lucide="upload"></i> Upload Files
-            </label>
-        </form>
+        <p>Upload, organize, and manage image assets for your catalog and storefront.</p>
     </div>
 </div>
 
-<div class="card">
+<!-- Upload Area -->
+<div class="card" style="border: 2px dashed var(--border-color); text-align: center; padding: 2rem; margin-bottom: 2rem; background: #fafafa;">
+    <form action="/admin/media/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+        <i data-lucide="cloud-upload" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 0.75rem;"></i>
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">Drag and drop files here, or click to browse</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Supports JPG, PNG, WEBP, GIF, SVG, and MP4 up to 10MB each.</p>
+        <input type="file" name="files[]" id="fileInput" multiple style="display: none;" onchange="document.getElementById('uploadForm').submit();">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();"><i data-lucide="upload"></i> Select Files</button>
+    </form>
+</div>
+
+<!-- Media Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.25rem;">
     <?php if (empty($media)): ?>
-        <div style="text-align: center; padding: 4rem 2rem; color: #94a3b8;">
-            <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
-            <h3 style="margin-top: 0;">No media files</h3>
-            <p>Upload images to see them here.</p>
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+            No media files uploaded yet. Drag & drop files above to get started.
         </div>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
-            <?php foreach ($media as $item): ?>
-                <div style="border: 1px solid var(--border-color); border-radius: 0.5rem; overflow: hidden; background: var(--bg-main); display: flex; flex-direction: column;">
-                    <!-- Preview -->
-                    <div style="aspect-ratio: 1; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <?php if (strpos($item['mime_type'], 'image/') === 0): ?>
-                            <img src="<?= htmlspecialchars($item['path']) ?>" alt="<?= htmlspecialchars($item['alt_text'] ?? $item['original_name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                        <?php else: ?>
-                            <i data-lucide="file" style="width: 48px; height: 48px; color: #64748b;"></i>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <!-- Details -->
-                    <div style="padding: 1rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div style="margin-bottom: 1rem;">
-                            <div style="font-weight: 500; font-size: 0.875rem; color: var(--text-main); word-break: break-all; margin-bottom: 0.25rem;">
-                                <?= htmlspecialchars($item['original_name']) ?>
-                            </div>
-                            <div style="font-size: 0.75rem; color: #64748b;">
-                                <?= number_format($item['size'] / 1024, 1) ?> KB &bull; <?= htmlspecialchars($item['folder']) ?>
-                            </div>
-                        </div>
-                        
-                        <!-- Actions -->
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" readonly value="<?= htmlspecialchars($item['path']) ?>" style="flex-grow: 1; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px solid var(--border-color); background: var(--bg-content); color: var(--text-main);" onclick="this.select()">
-                            
-                            <form method="POST" action="/admin/media/delete" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this file? It may break images on your site.');">
-                                <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                                <input type="hidden" name="id" value="<?= $item['id'] ?>">
-                                <button type="submit" class="btn" style="background: transparent; color: #ef4444; padding: 0.25rem; border: 1px solid var(--border-color);">
-                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                                </button>
-                            </form>
-                        </div>
+        <?php foreach ($media as $item): ?>
+            <div class="card" style="padding: 0.75rem; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative;">
+                <div style="width: 100%; height: 140px; border-radius: 0.375rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.75rem;">
+                    <?php if (strpos($item['mime_type'] ?? '', 'image/') === 0): ?>
+                        <img src="<?= htmlspecialchars($item['path']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                    <?php else: ?>
+                        <i data-lucide="file" style="width: 36px; height: 36px; color: var(--text-muted);"></i>
+                    <?php endif; ?>
+                </div>
+                
+                <div style="font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.25rem;" title="<?= htmlspecialchars($item['original_name'] ?? $item['filename']) ?>">
+                    <?= htmlspecialchars($item['original_name'] ?? $item['filename']) ?>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                    <span><?= round(($item['size'] ?? 0) / 1024, 1) ?> KB</span>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.4rem;" onclick="copyUrl('<?= htmlspecialchars($item['path']) ?>')" title="Copy Link"><i data-lucide="copy" style="width: 14px; height: 14px;"></i></button>
+                        <form action="/admin/media/delete" method="POST" onsubmit="return confirm('Delete this file?');" style="display: inline;">
+                            <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                            <button type="submit" class="btn btn-secondary" style="padding: 0.25rem 0.4rem; color: var(--danger);" title="Delete"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
+                        </form>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        </div>
+            </div>
+        <?php endforeach; ?>
     <?php endif; ?>
 </div>
+
+<script>
+function copyUrl(url) {
+    const fullUrl = window.location.origin + url;
+    navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Image URL copied to clipboard!\n' + fullUrl);
+    });
+}
+</script>

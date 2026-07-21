@@ -18,19 +18,9 @@ class AdminController extends Controller
 
     protected function checkAuth(Request $request): void
     {
-        // Placeholder check: Redirect to login if not authenticated as admin
         if (!isset($_SESSION['admin_user'])) {
-            // For now, let's auto-login a dummy admin if in debug mode
-            if (defined('APP_DEBUG') && APP_DEBUG) {
-                $_SESSION['admin_user'] = [
-                    'id' => 1,
-                    'email' => 'admin@axer.com',
-                    'name' => 'Axer Administrator'
-                ];
-            } else {
-                header('Location: /admin/login');
-                exit;
-            }
+            header('Location: /admin/login');
+            exit;
         }
     }
 

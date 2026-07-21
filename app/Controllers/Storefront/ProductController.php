@@ -8,8 +8,9 @@ use Axer\Database\QueryBuilder;
 use Axer\Services\ThemeService;
 use Axer\Template\Engine;
 use Axer\Services\PixelService;
+use Axer\Core\Controller;
 
-class ProductController
+class ProductController extends Controller
 {
     protected function render(string $template, array $data = []): Response
     {
