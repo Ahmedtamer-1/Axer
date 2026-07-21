@@ -25,6 +25,11 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        img, video, iframe {
+            max-width: 100%;
+            height: auto;
+        }
+
         body {
             font-family: 'Outfit', 'Inter', sans-serif;
             background-color: var(--bg-color);
