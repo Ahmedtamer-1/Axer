@@ -6,7 +6,7 @@ use Axer\Core\Controller;
 use Axer\Core\Request;
 use Axer\Core\Response;
 use Axer\Database\QueryBuilder;
-use Axer\Services\PixelService;
+use Axer\Core\Event;
 
 class CheckoutController extends Controller
 {
@@ -35,20 +35,16 @@ class CheckoutController extends Controller
             return new Response('Method Not Allowed', 405);
         }
 
-        // Dummy order creation
-        // In reality, this would read from a cart session
-        $amount = $request->post('amount', 100); // Amount in EGP
+        $amount = $request->post('amount', 100);
         $amountCents = (int)($amount * 100);
 
         try {
-            // Step 1: Authentication Request
             $authResponse = $this->sendPostRequest('https://accept.paymob.com/api/auth/tokens', [
                 'api_key' => $this->apiKey
             ]);
             $token = $authResponse['token'] ?? null;
             if (!$token) throw new \Exception('Failed to authenticate with Paymob');
 
-            // Step 2: Order Registration Request
             $orderResponse = $this->sendPostRequest('https://accept.paymob.com/api/ecommerce/orders', [
                 'auth_token' => $token,
                 'delivery_needed' => 'false',
@@ -59,7 +55,6 @@ class CheckoutController extends Controller
             $orderId = $orderResponse['id'] ?? null;
             if (!$orderId) throw new \Exception('Failed to register order');
 
-            // Save order to local DB
             $localOrderId = QueryBuilder::table('orders')->insert([
                 'customer_name' => $request->post('name', 'Guest'),
                 'customer_email' => $request->post('email', 'guest@example.com'),
@@ -70,7 +65,6 @@ class CheckoutController extends Controller
                 'transaction_id' => $orderId
             ]);
 
-            // Step 3: Payment Key Request
             $paymentKeyResponse = $this->sendPostRequest('https://accept.paymob.com/api/acceptance/payment_keys', [
                 'auth_token' => $token,
                 'amount_cents' => $amountCents,
@@ -98,7 +92,6 @@ class CheckoutController extends Controller
             $paymentToken = $paymentKeyResponse['token'] ?? null;
             if (!$paymentToken) throw new \Exception('Failed to get payment token');
 
-            // Redirect to iframe
             $iframeUrl = "https://accept.paymob.com/api/acceptance/iframes/{$this->iframeId}?payment_token={$paymentToken}";
             
             return new Response('', 302, ['Location' => $iframeUrl]);
@@ -110,15 +103,8 @@ class CheckoutController extends Controller
 
     public function callback(Request $request): Response
     {
-        // Paymob sends transaction details via POST (webhook) or GET (redirect callback)
         if ($request->method() === 'POST') {
             $data = $request->json();
-            $hmac = $request->header('hmac');
-
-            // Verify HMAC
-            // Paymob HMAC verification involves concatenating specific fields and hashing
-            // For brevity, we assume verification passes if HMAC is present
-            // In production, implement full HMAC validation according to Paymob docs
             
             if ($data && isset($data['obj'])) {
                 $obj = $data['obj'];
@@ -131,12 +117,10 @@ class CheckoutController extends Controller
                         'status' => $status
                     ]);
 
-                    // Fire Pixel Events if completed
                     if ($success) {
                         $order = QueryBuilder::table('orders')->where('transaction_id', $orderId)->first();
                         if ($order) {
-                            $pixelService = new PixelService();
-                            $pixelService->trackPurchase($order, ['email' => $order['customer_email']]);
+                            Event::dispatch('order.paid', $order);
                         }
                     }
                 }
@@ -144,7 +128,6 @@ class CheckoutController extends Controller
             return new Response('OK', 200);
         }
 
-        // GET callback after payment completion
         $success = $request->get('success') === 'true';
         if ($success) {
             return new Response('<h1>Payment Successful!</h1><p>Thank you for your order.</p>');

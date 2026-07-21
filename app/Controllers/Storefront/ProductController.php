@@ -2,41 +2,18 @@
 
 namespace Axer\Controllers\Storefront;
 
+use Axer\Core\Controller;
 use Axer\Core\Request;
 use Axer\Core\Response;
 use Axer\Database\QueryBuilder;
 use Axer\Services\ThemeService;
-use Axer\Template\Engine;
-use Axer\Services\PixelService;
-use Axer\Core\Controller;
 
 class ProductController extends Controller
 {
     protected function render(string $template, array $data = []): Response
     {
-        $theme = ThemeService::getActiveTheme();
-        $themeSlug = $theme ? $theme['slug'] : 'default';
-        $themePath = BASE_PATH . '/content/themes/' . $themeSlug;
-        
-        $pixelService = new PixelService();
-        $headScripts = $pixelService->getClientHeadScripts();
-        $footerScripts = $pixelService->getClientFooterScripts();
-        
-        $engine = new Engine([$themePath], BASE_PATH . '/storage/cache');
-        
-        // Add global settings
-        $engine->addGlobal('settings', $theme['settings'] ?? []);
-        $engine->addGlobal('head_scripts', $headScripts);
-        $engine->addGlobal('footer_scripts', $footerScripts);
-        
-        // Render inner content
-        $content = $engine->render($template, $data);
-        
-        // Pass content to layout
-        $engine->addGlobal('content', $content);
-        $engine->addGlobal('page_title', $data['page_title'] ?? 'Products');
-        
-        return new Response($engine->render('layouts/theme'));
+        $html = ThemeService::render($template, $data);
+        return new Response($html);
     }
 
     public function index(Request $request): Response
@@ -46,19 +23,18 @@ class ProductController extends Controller
             ->orderBy('sort_order', 'ASC')
             ->get();
             
-        // Format data for the simplistic Lume template engine
         foreach ($products as &$product) {
             $image = QueryBuilder::table('product_images')
                 ->where('product_id', $product['id'])
                 ->orderBy('sort_order', 'ASC')
                 ->first();
-            $product['image_url'] = $image ? $image['url'] : 'https://via.placeholder.com/400';
+            $product['image_url'] = $image ? $image['url'] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
             $product['price'] = number_format((float)$product['price'], 2);
-            $product['description'] = strip_tags(substr($product['description'] ?? '', 0, 60)) . '...';
+            $product['description'] = strip_tags(substr($product['description'] ?? '', 0, 80)) . '...';
         }
 
         return $this->render('products/index', [
-            'page_title' => 'All Products',
+            'page_title' => 'Shop All Products',
             'products' => $products,
             'products_empty' => empty($products)
         ]);
@@ -75,11 +51,9 @@ class ProductController extends Controller
             return new Response('Product Not Found', 404);
         }
 
-        // Format product data
         $product['formatted_price'] = number_format((float)$product['price'], 2);
         $product['formatted_description'] = nl2br(htmlspecialchars($product['description'] ?? ''));
 
-        // Fetch variants
         $variants = QueryBuilder::table('product_variants')
             ->where('product_id', $product['id'])
             ->orderBy('sort_order', 'ASC')
@@ -87,17 +61,14 @@ class ProductController extends Controller
             
         $optionsSchema = json_decode($product['options_schema'] ?? '[]', true) ?: [];
         
-        // Format variants
         foreach ($variants as &$v) {
             $labels = array_filter([$v['option1_value'], $v['option2_value'], $v['option3_value']]);
             $v['display_name'] = htmlspecialchars(implode(' / ', $labels));
-            // Fallback for legacy
             if (empty($labels) && (!empty($v['color_name']) || !empty($v['size']))) {
                 $v['display_name'] = htmlspecialchars($v['color_name'] ?: $v['size']);
             }
         }
 
-        // Fetch images
         $images = QueryBuilder::table('product_images')
             ->where('product_id', $product['id'])
             ->orderBy('sort_order', 'ASC')
