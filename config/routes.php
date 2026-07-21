@@ -40,12 +40,22 @@ function renderStorefrontPage(Request $request, string $slug): Response {
         $content = '';
         $builderData = json_decode($page['builder_data'] ?? '[]', true);
         
+        // Fetch active products for sections context
+        $products = [];
+        try {
+            $products = QueryBuilder::table('products')->where('status', 'active')->limit(8)->get();
+            foreach ($products as &$p) {
+                $img = QueryBuilder::table('product_images')->where('product_id', $p['id'])->first();
+                $p['image_url'] = $img ? $img['url'] : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
+                $p['price'] = number_format((float)$p['price'], 2);
+            }
+        } catch (\Exception $e) {}
+
         if (is_array($builderData) && !empty($builderData)) {
             foreach ($builderData as $block) {
                 $type = $block['type'] ?? '';
                 $settings = $block['settings'] ?? [];
                 
-                // Override legacy hero banner values if old text
                 if ($type === 'hero' && isset($settings['title']) && str_contains($settings['title'], 'Lume')) {
                     $settings['title'] = str_replace('Lume', 'Axer', $settings['title']);
                 }
@@ -54,13 +64,18 @@ function renderStorefrontPage(Request $request, string $slug): Response {
                 if (file_exists($sectionFile)) {
                     $engine = new \Axer\Template\Engine([$themePath], BASE_PATH . '/storage/cache/templates');
                     $engine->addGlobal('settings', $theme['settings'] ?? []);
+                    $engine->addGlobal('csrf_token', $_SESSION['csrf_token'] ?? '');
+                    
+                    $settings['featured_products'] = $products;
+                    $settings['products_empty'] = empty($products);
+
                     $content .= $engine->render("sections/{$type}", $settings);
                 } else {
                     if ($type === 'hero') {
                         $content .= "<div class='hero-section' style='background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; text-align: center; padding: 5rem 2rem; border-radius: 1rem; margin-bottom: 3rem;'>";
                         $content .= "<h1 style='font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem;'>" . htmlspecialchars($settings['title'] ?? 'Welcome to Axer Storefront') . "</h1>";
                         $content .= "<p style='font-size: 1.25rem; opacity: 0.9; max-width: 600px; margin: 0 auto 2rem;'>" . htmlspecialchars($settings['subtitle'] ?? 'Fully customizable headless e-commerce CMS') . "</p>";
-                        $content .= "<a href='/shop' class='btn btn-primary' style='display: inline-block; padding: 0.875rem 2.25rem; background: #ffffff; color: #4f46e5; font-weight: 700; text-decoration: none; border-radius: 0.5rem;'>Shop Collection</a>";
+                        $content .= "<a href='/shop' class='btn btn-primary' style='display: inline-block; padding: 0.875rem 2.25rem; background: #ffffff; color: #4f46e5; font-weight: 700; text-decoration: none; border-radius: 0.5rem;'>Explore Shop Collection</a>";
                         $content .= "</div>";
                     } elseif ($type === 'rich-text') {
                         $content .= "<div class='section rich-text-section' style='text-align: " . ($settings['align'] ?? 'center') . "; padding: 3rem 1rem;'>";

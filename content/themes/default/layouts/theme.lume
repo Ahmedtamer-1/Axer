@@ -264,11 +264,11 @@
             <div class="header-actions">
                 <a href="/cart" class="cart-btn" title="View Cart">
                     <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
-                    <?php if (!empty($cart_count) && $cart_count > 0): ?>
-                        <span class="cart-count"><?= $cart_count ?></span>
-                    <?php else: ?>
+                    {% if cart_count %}
+                        <span class="cart-count">{{ cart_count }}</span>
+                    {% else %}
                         <span class="cart-count">0</span>
-                    <?php endif; ?>
+                    {% endif %}
                 </a>
                 <a href="/admin/dashboard" class="admin-link">Admin Portal</a>
             </div>
@@ -321,7 +321,7 @@
         </div>
 
         <div class="footer-bottom">
-            &copy; <?= date('Y') ?> Axer CMS. All rights reserved. Powered by Axer Headless Engine.
+            &copy; Axer CMS. All rights reserved. Powered by Axer Headless Engine.
         </div>
     </footer>
 
