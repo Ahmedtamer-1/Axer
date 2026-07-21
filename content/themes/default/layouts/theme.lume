@@ -4,89 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }}</title>
-    <!-- CSS -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family={{ settings.font_family }}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body {
-            font-family: '{{ settings.font_family }}', sans-serif;
-            margin: 0;
-            padding: 0;
-            color: {{ settings.text_color }};
-            background-color: #ffffff;
-        }
-        
-        .section {
-            padding: 5rem 2rem;
-            box-sizing: border-box;
+        :root {
+            --primary: {{ theme.colors.primary | default('#6366f1') }};
+            --primary-hover: #4f46e5;
+            --secondary: {{ theme.colors.secondary | default('#1e293b') }};
+            --bg-color: {{ theme.colors.background | default('#ffffff') }};
+            --text-color: {{ theme.colors.text | default('#0f172a') }};
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --container-max: {{ theme.layout.container_width | default('1200px') }};
+            --radius: 0.75rem;
         }
 
-        .hero-section {
-            text-align: center;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 450px;
         }
 
-        .hero-section h1 { font-size: 3.5rem; margin-bottom: 1.5rem; font-weight: 700; }
-        .hero-section p { font-size: 1.25rem; margin-bottom: 2rem; max-width: 600px; opacity: 0.9; }
-
-        .btn {
-            display: inline-block;
-            padding: 0.875rem 2.25rem;
-            font-weight: 600;
-            text-decoration: none;
-            border-radius: {{ settings.button_border_radius }};
-            transition: all 0.2s;
-        }
-
-        .grid-products {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2.5rem;
-            max-width: 1200px;
-            margin: 3rem auto 0;
-        }
-
-        .product-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            text-align: center;
+        /* Glassmorphism Header */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
-        .product-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+
+        .header-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .product-img {
-            background: #f1f5f9;
-            height: 240px;
-            border-radius: 0.25rem;
-            margin-bottom: 1rem;
+        .brand-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-logo span.accent {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .cart-btn {
+            position: relative;
+            color: var(--text-color);
+            text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #94a3b8;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+            transition: background 0.2s;
         }
 
-        .product-title { font-weight: 600; font-size: 1.125rem; margin-bottom: 0.5rem; }
-        .product-price { color: {{ settings.primary_color }}; font-weight: 700; }
+        .cart-btn:hover {
+            background: #e2e8f0;
+        }
 
-        .rich-text-section { max-width: 800px; margin: 0 auto; }
-        
-        .newsletter-section { background-color: #f8fafc; text-align: center; border-top: 1px solid #f1f5f9; }
-        .newsletter-section h2 { font-size: 2rem; margin-bottom: 0.75rem; }
-        .newsletter-form { display: flex; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
-        .newsletter-input { padding: 0.75rem 1.25rem; border-radius: {{ settings.button_border_radius }}; border: 1px solid #cbd5e1; width: 280px; }
+        .cart-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .admin-link {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .admin-link:hover { opacity: 0.9; }
+
+        /* Main Container */
+        .site-main {
+            flex-grow: 1;
+            max-width: var(--container-max);
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Buttons & UI Elements */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Footer */
+        .site-footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            border-top: 1px solid #1e293b;
+            margin-top: 4rem;
+            padding: 4rem 1.5rem 2rem;
+        }
+
+        .footer-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-col h4 {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-col ul a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col ul a:hover {
+            color: #ffffff;
+        }
+
+        .footer-bottom {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid #1e293b;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .footer-container { grid-template-columns: 1fr; gap: 2rem; }
+            .nav-links { display: none; }
+        }
     </style>
     {{ head_scripts | raw }}
 </head>
 <body>
-    {{ content | raw }}
+    <!-- Navigation Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="brand-logo">
+                <i data-lucide="sparkles" style="color: var(--primary);"></i>
+                <span>Axer<span class="accent">Store</span></span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop Collection</a></li>
+                <li><a href="/products">All Products</a></li>
+            </ul>
+
+            <div class="header-actions">
+                <a href="/cart" class="cart-btn" title="View Cart">
+                    <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
+                    <?php if (!empty($cart_count) && $cart_count > 0): ?>
+                        <span class="cart-count"><?= $cart_count ?></span>
+                    <?php else: ?>
+                        <span class="cart-count">0</span>
+                    <?php endif; ?>
+                </a>
+                <a href="/admin/dashboard" class="admin-link">Admin Portal</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="site-main">
+        {{ content | raw }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="sparkles" style="color: var(--primary);"></i> Axer Storefront
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    Next-generation headless e-commerce platform built for speed, customizability, and intuitive merchant control.
+                </p>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="/shop">All Collections</a></li>
+                    <li><a href="/products">Featured Items</a></li>
+                    <li><a href="/cart">My Shopping Cart</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/admin/dashboard">Admin Dashboard</a></li>
+                    <li><a href="/admin/products">Product Spreadsheet</a></li>
+                    <li><a href="/admin/plugins">Plugin Marketplace</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">API Reference</a></li>
+                    <li><a href="#">System Health</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            &copy; <?= date('Y') ?> Axer CMS. All rights reserved. Powered by Axer Headless Engine.
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
     {{ footer_scripts | raw }}
 </body>
 </html>

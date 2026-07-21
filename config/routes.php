@@ -6,7 +6,9 @@ use Axer\Core\Response;
 use Axer\Database\QueryBuilder;
 use Axer\Services\ThemeService;
 use Axer\Services\PixelService;
-use Axer\Template\Engine;
+use Axer\Controllers\Storefront\ProductController;
+use Axer\Controllers\Storefront\CheckoutController;
+use Axer\Controllers\Storefront\CartController;
 
 /** @var Router $router */
 
@@ -43,23 +45,25 @@ function renderStorefrontPage(Request $request, string $slug): Response {
                 $type = $block['type'] ?? '';
                 $settings = $block['settings'] ?? [];
                 
+                // Override legacy hero banner values if old text
+                if ($type === 'hero' && isset($settings['title']) && str_contains($settings['title'], 'Lume')) {
+                    $settings['title'] = str_replace('Lume', 'Axer', $settings['title']);
+                }
+
                 $sectionFile = $themePath . "/sections/{$type}.lume";
                 if (file_exists($sectionFile)) {
-                    $engine = new Engine([$themePath], BASE_PATH . '/storage/cache');
+                    $engine = new \Axer\Template\Engine([$themePath], BASE_PATH . '/storage/cache/templates');
                     $engine->addGlobal('settings', $theme['settings'] ?? []);
                     $content .= $engine->render("sections/{$type}", $settings);
                 } else {
-                    // Fallback to basic HTML if block is standard html
                     if ($type === 'hero') {
-                        $content .= "<div class='section hero-section' style='background-color: " . ($settings['bg_color'] ?? '#6366f1') . "; color: " . ($settings['text_color'] ?? '#ffffff') . ";'>";
-                        $content .= "<h1>" . htmlspecialchars($settings['title'] ?? '') . "</h1>";
-                        $content .= "<p>" . htmlspecialchars($settings['subtitle'] ?? '') . "</p>";
-                        if (!empty($settings['button_text'])) {
-                            $content .= "<a href='" . htmlspecialchars($settings['button_url'] ?? '#') . "' class='btn' style='background-color: " . ($settings['text_color'] ?? '#ffffff') . "; color: " . ($settings['bg_color'] ?? '#6366f1') . ";'>" . htmlspecialchars($settings['button_text']) . "</a>";
-                        }
+                        $content .= "<div class='hero-section' style='background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; text-align: center; padding: 5rem 2rem; border-radius: 1rem; margin-bottom: 3rem;'>";
+                        $content .= "<h1 style='font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem;'>" . htmlspecialchars($settings['title'] ?? 'Welcome to Axer Storefront') . "</h1>";
+                        $content .= "<p style='font-size: 1.25rem; opacity: 0.9; max-width: 600px; margin: 0 auto 2rem;'>" . htmlspecialchars($settings['subtitle'] ?? 'Fully customizable headless e-commerce CMS') . "</p>";
+                        $content .= "<a href='/shop' class='btn btn-primary' style='display: inline-block; padding: 0.875rem 2.25rem; background: #ffffff; color: #4f46e5; font-weight: 700; text-decoration: none; border-radius: 0.5rem;'>Shop Collection</a>";
                         $content .= "</div>";
                     } elseif ($type === 'rich-text') {
-                        $content .= "<div class='section rich-text-section' style='text-align: " . ($settings['align'] ?? 'center') . ";'>";
+                        $content .= "<div class='section rich-text-section' style='text-align: " . ($settings['align'] ?? 'center') . "; padding: 3rem 1rem;'>";
                         if (!empty($settings['title'])) {
                             $content .= "<h2 style='font-size: 2rem; margin-bottom: 1rem;'>" . htmlspecialchars($settings['title']) . "</h2>";
                         }
@@ -74,14 +78,13 @@ function renderStorefrontPage(Request $request, string $slug): Response {
             $content = $page['content'] ?? '';
         }
         
-        $engine = new Engine([$themePath], BASE_PATH . '/storage/cache');
-        $engine->addGlobal('page_title', $page['title'] . ' - ' . ($theme['settings']['store_name'] ?? 'Lume Store'));
-        $engine->addGlobal('settings', $theme['settings'] ?? []);
-        $engine->addGlobal('head_scripts', $headScripts);
-        $engine->addGlobal('footer_scripts', $footerScripts);
-        $engine->addGlobal('content', $content);
-        
-        $html = $engine->render('layouts/theme');
+        $html = ThemeService::render('layouts/theme', [
+            'page_title' => $page['title'] . ' - ' . ($theme['settings']['store_name'] ?? 'Axer Store'),
+            'content' => $content,
+            'head_scripts' => $headScripts,
+            'footer_scripts' => $footerScripts
+        ]);
+
         return new Response($html);
         
     } catch (\Exception $e) {
@@ -89,14 +92,21 @@ function renderStorefrontPage(Request $request, string $slug): Response {
     }
 }
 
-// Checkout & Payment Routes
-$router->post('/checkout/process', [\Axer\Controllers\Storefront\CheckoutController::class, 'process']);
-$router->post('/checkout/callback', [\Axer\Controllers\Storefront\CheckoutController::class, 'callback']);
-$router->get('/checkout/callback', [\Axer\Controllers\Storefront\CheckoutController::class, 'callback']);
+// Cart Routes
+$router->get('/cart', [CartController::class, 'index']);
+$router->post('/cart/add', [CartController::class, 'add']);
+$router->post('/cart/update', [CartController::class, 'update']);
+$router->post('/cart/remove', [CartController::class, 'remove']);
 
-// Storefront Products Routes
-$router->get('/products', [\Axer\Controllers\Storefront\ProductController::class, 'index']);
-$router->get('/products/{slug}', [\Axer\Controllers\Storefront\ProductController::class, 'show']);
+// Checkout & Payment Routes
+$router->post('/checkout/process', [CheckoutController::class, 'process']);
+$router->post('/checkout/callback', [CheckoutController::class, 'callback']);
+$router->get('/checkout/callback', [CheckoutController::class, 'callback']);
+
+// Storefront Products & Shop Routes
+$router->get('/products', [ProductController::class, 'index']);
+$router->get('/shop', [ProductController::class, 'index']);
+$router->get('/products/{slug}', [ProductController::class, 'show']);
 
 // Storefront Home Page Route
 $router->get('/', function (Request $request) {
@@ -107,4 +117,3 @@ $router->get('/', function (Request $request) {
 $router->get('/{slug}', function (Request $request, string $slug) {
     return renderStorefrontPage($request, $slug);
 });
-

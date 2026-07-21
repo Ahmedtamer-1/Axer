@@ -25,6 +25,7 @@
         </div>
 
         <form action="/cart/add" method="POST" style="margin-bottom: 3rem;">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
             <input type="hidden" name="product_id" value="{{ product.id }}">
             <input type="hidden" name="variant_id" id="selected-variant-id" value="">
             
