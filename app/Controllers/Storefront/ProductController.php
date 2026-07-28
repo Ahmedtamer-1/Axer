@@ -10,10 +10,10 @@ use Axer\Services\ThemeService;
 
 class ProductController extends Controller
 {
-    protected function render(string $template, array $data = []): Response
+    protected function render(string $view, array $data = [], int $status = 200): Response
     {
-        $html = ThemeService::render($template, $data);
-        return new Response($html);
+        $html = ThemeService::render($view, $data);
+        return new Response($html, $status);
     }
 
     public function index(Request $request): Response
