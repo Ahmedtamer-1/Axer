@@ -10,16 +10,20 @@ class UserController extends ApiController
 {
     public function profile(Request $request): Response
     {
-        $userId = $_SESSION['user_id'] ?? null;
-        if (!$userId) {
+        // AuthMiddleware verifies the bearer token and attaches the
+        // authenticated user via Request::setAuth() — but this endpoint
+        // checked $_SESSION['user_id'] instead, which a token-based API
+        // client never sets. profile() returned 401 for every legitimate
+        // request that reached it.
+        $userId = $request->userId();
+
+        if ($userId === null) {
             return $this->error('Unauthorized', 401);
         }
 
-        $user = QueryBuilder::table('users')
-            ->where('id', $userId)
-            ->first();
+        $user = QueryBuilder::table('users')->where('id', $userId)->first();
 
-        if (!$user) {
+        if ($user === null) {
             return $this->error('User not found', 404);
         }
 
