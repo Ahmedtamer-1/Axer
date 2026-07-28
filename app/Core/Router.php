@@ -281,19 +281,26 @@ class Router
 
     protected function executeAction($action, Request $request, array $params): Response
     {
-        if (is_array($action)) {
-            [$class, $method] = $action;
-            $controller = $this->container->get($class);
+        try {
+            if (is_array($action)) {
+                [$class, $method] = $action;
+                $controller = $this->container->get($class);
 
-            if (!method_exists($controller, $method)) {
-                throw new \RuntimeException("Controller method {$class}::{$method}() does not exist.");
+                if (!method_exists($controller, $method)) {
+                    throw new \RuntimeException("Controller method {$class}::{$method}() does not exist.");
+                }
+
+                $response = call_user_func_array([$controller, $method], array_merge([$request], array_values($params)));
+            } elseif (is_callable($action)) {
+                $response = call_user_func_array($action, array_merge([$request], array_values($params)));
+            } else {
+                throw new \RuntimeException('Invalid route action.');
             }
-
-            $response = call_user_func_array([$controller, $method], array_merge([$request], array_values($params)));
-        } elseif (is_callable($action)) {
-            $response = call_user_func_array($action, array_merge([$request], array_values($params)));
-        } else {
-            throw new \RuntimeException('Invalid route action.');
+        } catch (\Axer\Controllers\Admin\HttpResponseException $e) {
+            // A guard (checkAuth, for example) aborted the action with a
+            // response of its own. Unwinding this way keeps the response
+            // pipeline intact instead of calling header()+exit mid-action.
+            return $e->getResponse();
         }
 
         if ($response instanceof Response) {

@@ -93,6 +93,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
     const quickAddBtn = document.getElementById('quickAddBtn');
 
+    function csrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
     // Inline edit handler
     body.addEventListener('focusout', function(e) {
         if (e.target.classList.contains('editable')) {
@@ -123,9 +128,9 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '<?= $_SESSION['csrf_token'] ?? '' ?>'
+                'X-CSRF-TOKEN': csrfToken()
             },
-            body: JSON.stringify({ [field]: value, _csrf: '<?= $_SESSION['csrf_token'] ?? '' ?>' })
+            body: JSON.stringify({ [field]: value, _csrf: csrfToken() })
         })
         .then(res => res.json())
         .then(data => {
@@ -148,24 +153,40 @@ document.addEventListener('DOMContentLoaded', function() {
             const val = e.target.value;
             fetch('/admin/api/products/update/' + id, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: val, _csrf: '<?= $_SESSION['csrf_token'] ?? '' ?>' })
-            });
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ status: val, _csrf: csrfToken() })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success && window.Axer) {
+                    Axer.toast(data.message || 'Could not update status.', 'error');
+                }
+            })
+            .catch(() => { if (window.Axer) Axer.toast('Could not update status.', 'error'); });
         }
     });
 
     // Quick Add Row
     quickAddBtn.addEventListener('click', function() {
+        quickAddBtn.disabled = true;
+
         fetch('/admin/api/products/quick-create', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: 'New Product', _csrf: '<?= $_SESSION['csrf_token'] ?? '' ?>' })
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body: JSON.stringify({ name: 'New Product', _csrf: csrfToken() })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 location.reload();
+            } else if (window.Axer) {
+                Axer.toast(data.message || 'Could not create the product.', 'error');
+                quickAddBtn.disabled = false;
             }
+        })
+        .catch(() => {
+            if (window.Axer) Axer.toast('Could not create the product.', 'error');
+            quickAddBtn.disabled = false;
         });
     });
 
@@ -205,16 +226,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const checked = Array.from(body.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
         if (!checked.length || !confirm('Are you sure you want to delete these products?')) return;
 
+        bulkDeleteBtn.disabled = true;
+
         fetch('/admin/api/products/bulk-delete', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ids: checked, _csrf: '<?= $_SESSION['csrf_token'] ?? '' ?>' })
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body: JSON.stringify({ ids: checked, _csrf: csrfToken() })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 location.reload();
+            } else {
+                bulkDeleteBtn.disabled = false;
+                if (window.Axer) Axer.toast(data.message || 'Could not delete the selected products.', 'error');
             }
+        })
+        .catch(() => {
+            bulkDeleteBtn.disabled = false;
+            if (window.Axer) Axer.toast('Could not delete the selected products.', 'error');
         });
     });
 });

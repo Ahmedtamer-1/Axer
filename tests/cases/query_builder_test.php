@@ -255,4 +255,26 @@ test('sum aggregates without tripping identifier quoting', function () {
     assertSame(30.5, $total);
 });
 
+test('reserved SQL words as column names are backtick-quoted', function () {
+    // `group` and `key` (the settings table's real columns) are reserved
+    // words in MySQL. The original QueryBuilder interpolated column names
+    // bare, so `UPDATE settings SET group = ?, key = ?` was a syntax
+    // error — every settings save was broken. wrapColumn() now backticks
+    // every identifier unconditionally.
+    $pdo = Connection::resolve();
+    $pdo->exec('CREATE TABLE settings ("group" TEXT, "key" TEXT, value TEXT)');
+    $pdo->exec("INSERT INTO settings (\"group\", \"key\", value) VALUES ('general', 'store_name', 'Old Name')");
+
+    QueryBuilder::table('settings')
+        ->where('group', 'general')
+        ->where('key', 'store_name')
+        ->update(['value' => 'New Name']);
+
+    $row = QueryBuilder::table('settings')->where('group', 'general')->where('key', 'store_name')->first();
+
+    assertSame('New Name', $row['value']);
+
+    $pdo->exec('DROP TABLE settings');
+});
+
 Connection::setInstance(null);
