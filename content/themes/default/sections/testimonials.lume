@@ -1,0 +1,26 @@
+<div class="section" style="padding: 3rem 1rem; background: #f8fafc;">
+    {% if title %}
+        <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--text-color);">{{ title }}</h2>
+    {% endif %}
+
+    <div style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+        {% if quote1 %}
+            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.75rem;">
+                <p style="color: var(--text-color); font-size: 1.02rem; line-height: 1.6; margin-bottom: 1rem;">"{{ quote1 }}"</p>
+                <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">{{ author1 }}</div>
+            </div>
+        {% endif %}
+        {% if quote2 %}
+            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.75rem;">
+                <p style="color: var(--text-color); font-size: 1.02rem; line-height: 1.6; margin-bottom: 1rem;">"{{ quote2 }}"</p>
+                <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">{{ author2 }}</div>
+            </div>
+        {% endif %}
+        {% if quote3 %}
+            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.75rem;">
+                <p style="color: var(--text-color); font-size: 1.02rem; line-height: 1.6; margin-bottom: 1rem;">"{{ quote3 }}"</p>
+                <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">{{ author3 }}</div>
+            </div>
+        {% endif %}
+    </div>
+</div>

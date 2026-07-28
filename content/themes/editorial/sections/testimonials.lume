@@ -1,0 +1,31 @@
+<div class="section" style="background: #f5efe4;">
+    <div class="container">
+        {% if title %}
+            <div class="section-heading">
+                <span class="eyebrow">Reviews</span>
+                <h2>{{ title }}</h2>
+            </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem;">
+            {% if quote1 %}
+                <div style="background: #fff; border: 1px solid var(--border-color); padding: 2rem;">
+                    <p style="font-family: var(--heading-font); font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.25rem;">"{{ quote1 }}"</p>
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--primary);">{{ author1 }}</div>
+                </div>
+            {% endif %}
+            {% if quote2 %}
+                <div style="background: #fff; border: 1px solid var(--border-color); padding: 2rem;">
+                    <p style="font-family: var(--heading-font); font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.25rem;">"{{ quote2 }}"</p>
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--primary);">{{ author2 }}</div>
+                </div>
+            {% endif %}
+            {% if quote3 %}
+                <div style="background: #fff; border: 1px solid var(--border-color); padding: 2rem;">
+                    <p style="font-family: var(--heading-font); font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.25rem;">"{{ quote3 }}"</p>
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--primary);">{{ author3 }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

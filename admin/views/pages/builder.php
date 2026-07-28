@@ -410,6 +410,30 @@
                     <div class="block-template-icon"><i data-lucide="mail"></i></div>
                     <div class="block-template-name">Newsletter Signup</div>
                 </div>
+                <div class="block-template-card" data-type="text-image">
+                    <div class="block-template-icon"><i data-lucide="image"></i></div>
+                    <div class="block-template-name">Text + Image</div>
+                </div>
+                <div class="block-template-card" data-type="image-gallery">
+                    <div class="block-template-icon"><i data-lucide="grid-3x3"></i></div>
+                    <div class="block-template-name">Image Gallery</div>
+                </div>
+                <div class="block-template-card" data-type="faq">
+                    <div class="block-template-icon"><i data-lucide="circle-help"></i></div>
+                    <div class="block-template-name">FAQ</div>
+                </div>
+                <div class="block-template-card" data-type="testimonials">
+                    <div class="block-template-icon"><i data-lucide="quote"></i></div>
+                    <div class="block-template-name">Testimonials</div>
+                </div>
+                <div class="block-template-card" data-type="cta">
+                    <div class="block-template-icon"><i data-lucide="megaphone"></i></div>
+                    <div class="block-template-name">Call to Action</div>
+                </div>
+                <div class="block-template-card" data-type="spacer">
+                    <div class="block-template-icon"><i data-lucide="move-vertical"></i></div>
+                    <div class="block-template-name">Spacer</div>
+                </div>
             </div>
         </div>
     </div>
@@ -439,6 +463,7 @@
         guaranteed.
     -->
     <script src="/admin/assets/js/icons.js"></script>
+    <script src="/admin/assets/js/media-picker.js"></script>
     <script src="/admin/assets/js/builder.js"></script>
 </body>
 </html>

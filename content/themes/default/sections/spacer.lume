@@ -1,0 +1,1 @@
+<div style="height: {{ height | default('3rem') }};" aria-hidden="true"></div>

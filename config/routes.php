@@ -255,6 +255,94 @@ if (!class_exists('AxerStorefrontPage', false)) {
                     . nl2br($escape($settings['content'] ?? '')) . '</p></div>';
             }
 
+            if ($type === 'text-image') {
+                $html = '<div class="section" style="padding: 3rem 1rem; background:' . $escape($settings['bg_color'] ?? '#f8fafc') . ';'
+                    . ' color:' . $escape($settings['text_color'] ?? '#0f172a') . ';">'
+                    . '<div style="max-width: 1000px; margin: 0 auto;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="font-size: 2rem; margin-bottom: 1rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<p style="font-size: 1.1rem; line-height: 1.7;">' . nl2br($escape($settings['content'] ?? '')) . '</p>';
+
+                if (!empty($settings['image_url'])) {
+                    $html .= '<img src="' . $escape($settings['image_url']) . '" alt="" style="width: 100%; max-height: 420px; object-fit: cover; margin-top: 1.5rem; border-radius: 0.75rem;">';
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'image-gallery') {
+                $html = '<div class="section" style="padding: 3rem 1rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+
+                foreach (['image_1', 'image_2', 'image_3', 'image_4'] as $key) {
+                    if (!empty($settings[$key])) {
+                        $html .= '<img src="' . $escape($settings[$key]) . '" alt="" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 0.5rem;">';
+                    }
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'faq') {
+                $html = '<div class="section" style="max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                foreach ([1, 2, 3] as $n) {
+                    if (!empty($settings["q{$n}"])) {
+                        $html .= '<div style="border-bottom: 1px solid #e2e8f0; padding: 1.25rem 0;">'
+                            . '<h3 style="font-weight: 700; margin-bottom: 0.5rem;">' . $escape($settings["q{$n}"]) . '</h3>'
+                            . '<p style="color: #64748b;">' . $escape($settings["a{$n}"] ?? '') . '</p></div>';
+                    }
+                }
+
+                return $html . '</div>';
+            }
+
+            if ($type === 'testimonials') {
+                $html = '<div class="section" style="padding: 3rem 1rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<div style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">';
+
+                foreach ([1, 2, 3] as $n) {
+                    if (!empty($settings["quote{$n}"])) {
+                        $html .= '<div style="border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem;">'
+                            . '<p style="margin-bottom: 1rem;">"' . $escape($settings["quote{$n}"]) . '"</p>'
+                            . '<div style="font-weight: 700;">' . $escape($settings["author{$n}"] ?? '') . '</div></div>';
+                    }
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'cta') {
+                return '<div class="section" style="background: #0f172a; color: #fff; text-align: center; padding: 4rem 2rem; border-radius: 1rem; margin: 2rem 0;">'
+                    . '<h2 style="color: #fff; font-size: 2rem; margin-bottom: 0.75rem;">' . $escape($settings['title'] ?? 'Ready to get started?') . '</h2>'
+                    . '<p style="opacity: 0.85; margin-bottom: 2rem;">' . $escape($settings['subtitle'] ?? '') . '</p>'
+                    . '<a href="' . $escape($settings['button_url'] ?? '/shop') . '" style="display: inline-block; padding: 0.875rem 2.25rem; background: #fff; color: #0f172a; font-weight: 700; text-decoration: none; border-radius: 0.5rem;">'
+                    . $escape($settings['button_text'] ?? 'Shop Now') . '</a></div>';
+            }
+
+            if ($type === 'spacer') {
+                $height = preg_match('/^[0-9.]+(px|rem|em|vh)$/', (string) ($settings['height'] ?? '')) ? $settings['height'] : '3rem';
+
+                return '<div style="height: ' . $escape($height) . ';" aria-hidden="true"></div>';
+            }
+
             // Unknown block: fall back to the page's own body content.
             return (string) ($page['content'] ?? '');
         }
