@@ -18,7 +18,7 @@ class PluginController extends AdminController
 
     public function index(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         
         $installedPlugins = $this->manager->getInstalledPlugins();
 
@@ -30,7 +30,7 @@ class PluginController extends AdminController
 
     public function marketplace(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
 
         $catalogFile = BASE_PATH . '/content/plugin-catalog.json';
         $catalog = [];
@@ -52,21 +52,21 @@ class PluginController extends AdminController
 
     public function activate(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         $this->manager->activate($slug);
         return $this->redirect('/admin/plugins');
     }
 
     public function deactivate(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         $this->manager->deactivate($slug);
         return $this->redirect('/admin/plugins');
     }
 
     public function settings(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
 
         $plugins = $this->manager->getInstalledPlugins();
         $target = null;

@@ -10,7 +10,7 @@ class ThemeController extends AdminController
 {
     public function index(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         
         $themes = ThemeService::getAllThemes();
         
@@ -22,7 +22,7 @@ class ThemeController extends AdminController
 
     public function activate(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         
         ThemeService::activateTheme($slug);
         
@@ -31,7 +31,7 @@ class ThemeController extends AdminController
 
     public function customizer(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         
         $theme = ThemeService::scanTheme($slug);
         if (!$theme) {

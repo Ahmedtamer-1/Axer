@@ -3,6 +3,7 @@
 namespace Axer\Services;
 
 use Axer\Core\Csrf;
+use Axer\Core\Event;
 use Axer\Core\Logger;
 use Axer\Core\Session;
 use Axer\Database\QueryBuilder;
@@ -23,6 +24,7 @@ class ThemeService
     protected static bool $activeThemeLoaded = false;
     protected static array $engines = [];
     protected static ?array $storeSettings = null;
+    protected static ?array $navPages = null;
 
     public static function getActiveTheme(): ?array
     {
@@ -114,6 +116,52 @@ class ThemeService
         return $engine->render($template, $data);
     }
 
+    /**
+     * Render a storefront template and wrap it in the active theme's
+     * layout, the way the CMS page route always has.
+     *
+     * Product, cart and account pages used to call render() directly and
+     * return the bare template fragment as the whole HTTP response — no
+     * <html>/<head>, no CSS variables, no header or footer. Only the CMS
+     * page route (AxerStorefrontPage::render()) built the two-step
+     * content-then-layout sequence, so this centralises it for every
+     * storefront entry point.
+     */
+    public static function renderPage(string $template, array $data = []): string
+    {
+        return self::wrapContentInLayout(self::render($template, $data), $data);
+    }
+
+    /**
+     * Wrap already-rendered content (a template's output, or a page's
+     * concatenated builder blocks) in the active theme's layout.
+     *
+     * Pulled out of the CMS page route so every storefront entry point —
+     * products, cart, account, and CMS pages — assembles head/footer
+     * scripts and page metadata the same way.
+     */
+    public static function wrapContentInLayout(string $content, array $data = []): string
+    {
+        $store = self::storeSettings();
+        $pixels = new PixelService();
+
+        $headScripts = Event::filter('template.head_end', $pixels->getClientHeadScripts());
+        $footerScripts = Event::filter('template.footer_end', $pixels->getClientFooterScripts());
+
+        $layoutData = $data;
+        $layoutData['page_title'] = isset($data['page_title']) && $data['page_title'] !== ''
+            ? $data['page_title'] . ' — ' . $store['name']
+            : $store['name'];
+        $layoutData['meta_description'] = $data['meta_description'] ?? ($store['tagline'] ?? '');
+        $layoutData['content'] = $content;
+        $layoutData['head_scripts'] = $headScripts;
+        $layoutData['footer_scripts'] = $footerScripts;
+        $layoutData['flash_success'] = $data['flash_success'] ?? Session::flash('success');
+        $layoutData['flash_error'] = $data['flash_error'] ?? Session::flash('error');
+
+        return self::render('layouts/theme', $layoutData);
+    }
+
     public static function getGlobalContext(?array $theme = null): array
     {
         $theme ??= self::getActiveTheme();
@@ -130,6 +178,11 @@ class ThemeService
             'theme' => $theme['settings'] ?? [],
             'cart_count' => CartService::count(),
             'current_user' => $_SESSION['user'] ?? $_SESSION['admin_user'] ?? null,
+            // The storefront theme used to link straight into /admin for
+            // every visitor, logged in or not. This lets a theme show that
+            // link only to someone who is actually authenticated as staff.
+            'is_admin' => isset($_SESSION['admin_user']),
+            'nav_pages' => self::navPages(),
             'csrf_token' => Csrf::token(),
             'current_year' => date('Y'),
         ];
@@ -175,6 +228,33 @@ class ThemeService
         }
 
         return self::$storeSettings = $defaults;
+    }
+
+    /**
+     * Published pages flagged to appear in the storefront menu.
+     *
+     * pages.show_in_nav and pages.sort_order existed in the schema with no
+     * code ever reading them — every theme's header menu was a hardcoded
+     * list of links instead.
+     */
+    public static function navPages(): array
+    {
+        if (self::$navPages !== null) {
+            return self::$navPages;
+        }
+
+        try {
+            return self::$navPages = QueryBuilder::table('pages')
+                ->where('status', 'published')
+                ->where('show_in_nav', 1)
+                ->orderBy('sort_order', 'ASC')
+                ->orderBy('title', 'ASC')
+                ->get();
+        } catch (\Throwable $e) {
+            Logger::warning('Could not load nav pages: ' . $e->getMessage());
+
+            return self::$navPages = [];
+        }
     }
 
     public static function getAllThemes(): array
@@ -286,6 +366,7 @@ class ThemeService
         self::$activeTheme = null;
         self::$activeThemeLoaded = false;
         self::$storeSettings = null;
+        self::$navPages = null;
 
         foreach (self::$engines as $engine) {
             $engine->clearCache();

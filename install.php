@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 // Insert admin user
-                $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, role) VALUES (?, ?, ?, 'admin')");
+                $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, role) VALUES (?, ?, ?, 'superadmin')");
                 $stmt->execute([
                     $adminEmail,
                     password_hash($adminPass, PASSWORD_ARGON2ID),

@@ -12,7 +12,7 @@ class SettingsController extends AdminController
 {
     public function index(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
 
         $error = null;
         $success = null;

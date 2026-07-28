@@ -141,6 +141,23 @@
             background: #e2e8f0;
         }
 
+        .account-link {
+            position: relative;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+            transition: background 0.2s;
+        }
+
+        .account-link:hover {
+            background: #e2e8f0;
+        }
+
         .cart-count {
             position: absolute;
             top: -6px;
@@ -324,13 +341,16 @@
         <div class="header-container">
             <a href="/" class="brand-logo">
                 <i data-lucide="sparkles" style="color: var(--primary);"></i>
-                <span>Axer<span class="accent">Store</span></span>
+                <span>{{ store.name | default('Axer Store') }}</span>
             </a>
 
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
                 <li><a href="/shop">Shop Collection</a></li>
                 <li><a href="/products">All Products</a></li>
+                {% for nav_page in nav_pages %}
+                    <li><a href="/{{ nav_page.slug }}">{{ nav_page.title }}</a></li>
+                {% endfor %}
             </ul>
 
             <div class="header-actions">
@@ -342,13 +362,34 @@
                         <span class="cart-count" data-cart-count hidden>0</span>
                     {% endif %}
                 </a>
-                <a href="/admin/dashboard" class="admin-link">Admin Portal</a>
+                {% if current_user %}
+                    <a href="/account" class="account-link" title="My account" aria-label="My account">
+                        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                    </a>
+                {% else %}
+                    <a href="/account/login" class="account-link" title="Sign in" aria-label="Sign in">
+                        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                    </a>
+                {% endif %}
+                {% if is_admin %}
+                    <a href="/admin/dashboard" class="admin-link">Admin Portal</a>
+                {% endif %}
             </div>
         </div>
     </header>
 
     <!-- Main Content Body -->
     <main class="site-main" id="main-content">
+        {% if flash_success %}
+            <div style="max-width: 1200px; margin: 1.5rem auto 0; padding: 0 2rem;">
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 0.875rem 1.25rem; border-radius: 0.5rem; font-size: 0.9rem;">{{ flash_success }}</div>
+            </div>
+        {% endif %}
+        {% if flash_error %}
+            <div style="max-width: 1200px; margin: 1.5rem auto 0; padding: 0 2rem;">
+                <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 0.875rem 1.25rem; border-radius: 0.5rem; font-size: 0.9rem;">{{ flash_error }}</div>
+            </div>
+        {% endif %}
         {{ content | raw }}
     </main>
 
@@ -357,37 +398,46 @@
         <div class="footer-container">
             <div class="footer-col">
                 <div style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="sparkles" style="color: var(--primary);"></i> Axer Storefront
+                    <i data-lucide="sparkles" style="color: var(--primary);"></i> {{ store.name | default('Axer Store') }}
                 </div>
                 <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
-                    Next-generation headless e-commerce platform built for speed, customizability, and intuitive merchant control.
+                    {{ store.tagline | default('Next-generation commerce, built for speed.') }}
                 </p>
             </div>
-            
+
             <div class="footer-col">
                 <h4>Shop</h4>
                 <ul>
                     <li><a href="/shop">All Collections</a></li>
                     <li><a href="/products">Featured Items</a></li>
                     <li><a href="/cart">My Shopping Cart</a></li>
+                    {% for nav_page in nav_pages %}
+                        <li><a href="/{{ nav_page.slug }}">{{ nav_page.title }}</a></li>
+                    {% endfor %}
                 </ul>
             </div>
 
-            <div class="footer-col">
-                <h4>Platform</h4>
-                <ul>
-                    <li><a href="/admin/dashboard">Admin Dashboard</a></li>
-                    <li><a href="/admin/products">Product Spreadsheet</a></li>
-                    <li><a href="/admin/plugins">Plugin Marketplace</a></li>
-                </ul>
-            </div>
+            {% if is_admin %}
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="/admin/dashboard">Admin Dashboard</a></li>
+                        <li><a href="/admin/products">Product Spreadsheet</a></li>
+                        <li><a href="/admin/plugins">Plugin Marketplace</a></li>
+                    </ul>
+                </div>
+            {% endif %}
 
             <div class="footer-col">
-                <h4>Support</h4>
+                <h4>Account</h4>
                 <ul>
-                    <li><a href="#">Documentation</a></li>
-                    <li><a href="#">API Reference</a></li>
-                    <li><a href="#">System Health</a></li>
+                    {% if current_user %}
+                        <li><a href="/account">My Account</a></li>
+                        <li><a href="/account/logout">Sign Out</a></li>
+                    {% else %}
+                        <li><a href="/account/login">Sign In</a></li>
+                        <li><a href="/account/register">Create Account</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

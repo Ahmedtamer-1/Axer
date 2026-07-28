@@ -24,7 +24,7 @@ class CartController extends Controller
         $shipping = $subtotal > 0 && $subtotal < 1000 ? 60.0 : 0.0;
         $total = $subtotal + $shipping;
 
-        $html = ThemeService::render('cart', [
+        $html = ThemeService::renderPage('cart', [
             'page_title' => 'Shopping Cart',
             'cart_items' => $cart['items'],
             'cart_count' => $cart['count'],

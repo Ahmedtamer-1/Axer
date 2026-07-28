@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     protected function render(string $view, array $data = [], int $status = 200): Response
     {
-        return new Response(ThemeService::render($view, $data), $status);
+        return new Response(ThemeService::renderPage($view, $data), $status);
     }
 
     public function index(Request $request): Response

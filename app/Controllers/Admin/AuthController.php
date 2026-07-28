@@ -99,10 +99,14 @@ class AuthController extends AdminController
         ];
 
         // Rehash if the cost factor has moved on since the account was made.
-        if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
+        // Standardised on Argon2id — the admin login used to hash with
+        // PASSWORD_DEFAULT (bcrypt) while the API login used Argon2id, so
+        // the same account could end up with either hash depending on
+        // which form last touched it.
+        if (password_needs_rehash($hash, PASSWORD_ARGON2ID)) {
             try {
                 QueryBuilder::table('users')->where('id', $user['id'])->update([
-                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                    'password_hash' => password_hash($password, PASSWORD_ARGON2ID),
                 ]);
             } catch (\Throwable $e) {
                 Logger::warning('Could not rehash password: ' . $e->getMessage());

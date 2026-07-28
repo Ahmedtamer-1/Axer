@@ -9,7 +9,7 @@
 </div>
 
 <form method="POST" action="/admin/themes/customize/<?= htmlspecialchars($theme['slug']) ?>">
-    <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+    <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
         <!-- Colors Card -->

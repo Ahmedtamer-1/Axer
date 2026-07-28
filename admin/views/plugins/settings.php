@@ -10,7 +10,7 @@
 
 <div class="card" style="max-width: 650px;">
     <form method="POST" action="/admin/plugins/settings/<?= htmlspecialchars($plugin['slug']) ?>">
-        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+        <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
         
         <?php if (empty($schema)): ?>
             <p style="color: var(--text-muted);">This plugin does not require any custom settings configuration.</p>

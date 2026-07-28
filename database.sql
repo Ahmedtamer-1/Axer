@@ -442,7 +442,7 @@ CREATE TABLE IF NOT EXISTS `rate_limits` (
 
 -- Default Admin User
 INSERT INTO `users` (`email`, `password_hash`, `first_name`, `role`) VALUES 
-('admin@example.com', '$argon2id$v=19$m=65536,t=4,p=1$bnF0N0N3SS9rNlE5QnZ4Rg$MS03eBs/O6y9vcYvUaaExvH8FCoYZ7u9TGjP8HCHKwQ', 'Admin', 'admin');
+('admin@example.com', '$argon2id$v=19$m=65536,t=4,p=1$bnF0N0N3SS9rNlE5QnZ4Rg$MS03eBs/O6y9vcYvUaaExvH8FCoYZ7u9TGjP8HCHKwQ', 'Admin', 'superadmin');
 
 -- Default Settings
 INSERT IGNORE INTO `settings` (`group`, `key`, `value`, `type`) VALUES 

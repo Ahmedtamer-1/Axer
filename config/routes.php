@@ -6,8 +6,8 @@ use Axer\Core\Response;
 use Axer\Core\Router;
 use Axer\Database\QueryBuilder;
 use Axer\Services\CartService;
-use Axer\Services\PixelService;
 use Axer\Services\ThemeService;
+use Axer\Controllers\Storefront\AccountController;
 use Axer\Controllers\Storefront\CartController;
 use Axer\Controllers\Storefront\CheckoutController;
 use Axer\Controllers\Storefront\NewsletterController;
@@ -20,6 +20,68 @@ use Axer\Support\Str;
 $router->get('/admin', static function () {
     return Response::redirect('/admin/dashboard');
 });
+
+/**
+ * Serve a theme's own static assets (CSS, JS, fonts, images).
+ *
+ * The `asset_url` template filter has always emitted `/theme-assets/<path>`
+ * (app/Template/Filters.php), but nothing ever served that prefix — a
+ * theme had no way to ship a real stylesheet and had to inline every rule
+ * into its .lume files instead. Confined to the active theme's assets/
+ * directory via realpath(), with an extension whitelist so this can't be
+ * used to read arbitrary files.
+ */
+$router->get('/theme-assets/{path}', static function (Request $request, string $path) {
+    $theme = ThemeService::getActiveTheme();
+    $slug = $theme['slug'] ?? 'default';
+
+    if (!preg_match('/^[a-z0-9][a-z0-9_-]*$/i', $slug)) {
+        return Response::notFound();
+    }
+
+    $assetsRoot = realpath(BASE_PATH . '/content/themes/' . $slug . '/assets');
+
+    if ($assetsRoot === false) {
+        return Response::notFound();
+    }
+
+    $requested = realpath($assetsRoot . '/' . $path);
+
+    if (
+        $requested === false
+        || !str_starts_with($requested, $assetsRoot . DIRECTORY_SEPARATOR)
+        || !is_file($requested)
+    ) {
+        return Response::notFound();
+    }
+
+    $extension = strtolower(pathinfo($requested, PATHINFO_EXTENSION));
+
+    $mimeTypes = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'svg' => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'webp' => 'image/webp',
+        'woff2' => 'font/woff2',
+    ];
+
+    if (!isset($mimeTypes[$extension])) {
+        return Response::notFound();
+    }
+
+    $content = file_get_contents($requested);
+
+    if ($content === false) {
+        return Response::notFound();
+    }
+
+    return (new Response($content))
+        ->setHeader('Content-Type', $mimeTypes[$extension])
+        ->cache(86400 * 7);
+})->where('path', '[A-Za-z0-9_\-./]+');
 
 /**
  * Render a storefront page from its builder blocks.
@@ -35,10 +97,16 @@ if (!class_exists('AxerStorefrontPage', false)) {
         public static function render(Request $request, string $slug): Response
         {
             try {
-                $page = QueryBuilder::table('pages')
-                    ->where('slug', $slug)
-                    ->where('status', 'published')
-                    ->first();
+                $isAdmin = isset($_SESSION['admin_user']);
+                $isPreview = $isAdmin && $request->get('preview') === '1';
+
+                $query = QueryBuilder::table('pages')->where('slug', $slug);
+
+                if (!$isPreview) {
+                    $query->where('status', 'published');
+                }
+
+                $page = $query->first();
 
                 if ($page === null) {
                     return Response::notFound();
@@ -51,21 +119,19 @@ if (!class_exists('AxerStorefrontPage', false)) {
                 // One engine for the whole page, not one per section.
                 $engine = ThemeService::engine($themeSlug);
 
-                $pixels = new PixelService();
                 $builderData = json_decode((string) ($page['builder_data'] ?? '[]'), true);
 
                 $content = is_array($builderData) && $builderData !== []
                     ? self::renderBlocks($builderData, $engine, $themePath, $page)
                     : (string) ($page['content'] ?? '');
 
-                $store = ThemeService::storeSettings();
+                if ($isPreview && $page['status'] !== 'published') {
+                    $content = self::draftPreviewBanner() . $content;
+                }
 
-                $html = ThemeService::render('layouts/theme', [
-                    'page_title' => (($page['seo_title'] ?? '') ?: $page['title']) . ' — ' . $store['name'],
+                $html = ThemeService::wrapContentInLayout($content, [
+                    'page_title' => ($page['seo_title'] ?? '') ?: $page['title'],
                     'meta_description' => Str::excerpt(($page['seo_description'] ?? '') ?: ($page['content'] ?? ''), 160),
-                    'content' => $content,
-                    'head_scripts' => $pixels->getClientHeadScripts(),
-                    'footer_scripts' => $pixels->getClientFooterScripts(),
                 ]);
 
                 return new Response($html);
@@ -192,6 +258,17 @@ if (!class_exists('AxerStorefrontPage', false)) {
             // Unknown block: fall back to the page's own body content.
             return (string) ($page['content'] ?? '');
         }
+
+        /**
+         * Shown above a draft page's content when an admin loads it with
+         * ?preview=1. Inline-styled so it renders regardless of theme.
+         */
+        protected static function draftPreviewBanner(): string
+        {
+            return '<div style="background:#f59e0b;color:#1e1500;text-align:center;'
+                . 'padding:0.75rem 1rem;font-weight:700;font-size:0.9rem;">'
+                . 'Draft preview — this page is not published yet.</div>';
+        }
     }
 }
 
@@ -208,6 +285,15 @@ $router->get('/checkout/callback', [CheckoutController::class, 'callback']);
 
 // Newsletter — the `subscribers` table existed with nothing routed to it.
 $router->post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+
+// Customer Accounts — registered ahead of the /{slug} wildcard below so
+// it cannot be shadowed by a CMS page of the same slug.
+$router->get('/account', [AccountController::class, 'dashboard']);
+$router->get('/account/login', [AccountController::class, 'showLogin']);
+$router->post('/account/login', [AccountController::class, 'login']);
+$router->get('/account/register', [AccountController::class, 'showRegister']);
+$router->post('/account/register', [AccountController::class, 'register']);
+$router->get('/account/logout', [AccountController::class, 'logout']);
 
 // Storefront Products & Shop Routes
 $router->get('/products', [ProductController::class, 'index']);
