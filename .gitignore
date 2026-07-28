@@ -1,0 +1,28 @@
+# Environment / secrets — never commit real credentials
+config/.env
+config/.env.*
+!config/.env.example
+
+# Runtime artifacts
+storage/cache/templates/*
+!storage/cache/templates/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+
+# User uploads
+content/uploads/*
+!content/uploads/.gitkeep
+
+# Installer lock
+storage/installed.lock
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,17 +1,78 @@
+# ---------------------------------------------------------------------
+# Deny direct access to application internals.
+#
+# The rewrite rules below only forward a request to index.php when the
+# target does NOT exist on disk (!-f). Every real file therefore stayed
+# directly fetchable, which meant /config/.env, /database.sql and the
+# PHP sources under /app were all downloadable. These rules close that.
+# ---------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
-    # Redirect Trailing Slashes If Not A Folder...
+
+    # Block dotfiles (.env, .git, .htaccess...) anywhere in the tree.
+    RewriteRule (^|/)\. - [F,L]
+
+    # Block application internals outright.
+    RewriteRule ^(app|config|database|storage|FullPlan)/ - [F,L]
+
+    # Block bare SQL dumps, backups, logs and lock files.
+    RewriteRule \.(sql|sqlite|db|log|lock|ini|bak|swp|dist|md)$ - [F,L]
+
+    # Never execute PHP that lives in user-writable directories.
+    RewriteRule ^content/uploads/.*\.(php|phtml|phar|ph[0-9])$ - [F,L]
+
+    # Redirect trailing slashes if not a folder.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Handle Authorization Header
+    # Pass the Authorization header through to PHP.
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Send Requests To Front Controller...
+    # Send everything else to the front controller.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Fallback for servers without mod_rewrite: still refuse the sensitive files.
+<FilesMatch "(^\.|\.(env|sql|sqlite|db|log|lock|ini|bak|swp|dist|md)$)">
+    Require all denied
+</FilesMatch>
+
+# Do not advertise a directory listing if mod_rewrite is off.
+Options -Indexes
+
+# ---------------------------------------------------------------------
+# Performance: compression + long-lived caching for static assets.
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css                "access plus 1 year"
+    ExpiresByType application/javascript  "access plus 1 year"
+    ExpiresByType image/svg+xml           "access plus 1 year"
+    ExpiresByType image/webp              "access plus 1 year"
+    ExpiresByType image/avif              "access plus 1 year"
+    ExpiresByType image/png               "access plus 1 year"
+    ExpiresByType image/jpeg              "access plus 1 year"
+    ExpiresByType font/woff2              "access plus 1 year"
+    ExpiresDefault                        "access plus 1 hour"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Assets are served with a ?v= cache buster, so they can be immutable.
+    <FilesMatch "\.(css|js|svg|woff2|png|jpe?g|webp|avif)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    # HTML must always be revalidated.
+    <FilesMatch "\.(html|php)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
 </IfModule>
