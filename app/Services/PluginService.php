@@ -8,32 +8,15 @@ class PluginService
 {
     protected array $plugins = [];
 
-    /**
-     * Initialize the plugin system and load active plugins
-     */
     public function init(): void
     {
-        $pluginsDir = BASE_PATH . '/content/plugins';
-        if (!is_dir($pluginsDir)) {
-            return;
-        }
-
-        // Ideally, we'd check the DB for active plugins. For now, load all valid ones.
-        $items = scandir($pluginsDir);
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $pluginFile = $pluginsDir . '/' . $item . '/index.php';
-            if (is_file($pluginFile)) {
-                // Include the plugin so it can register its listeners and routes
-                require_once $pluginFile;
-                $this->plugins[] = $item;
-            }
-        }
+        // Load active plugins via PluginManager
+        $manager = new \Axer\Plugin\PluginManager();
+        $manager->init();
         
+        $activePlugins = array_keys(class_exists('\Axer\Plugin\PluginManager') ? (new \ReflectionClass('\Axer\Plugin\PluginManager'))->getStaticPropertyValue('activePlugins') : []);
+
         // Dispatch an event that plugins are loaded
-        Event::dispatch('plugins.loaded', $this->plugins);
+        Event::dispatch('plugins.loaded', $activePlugins);
     }
 }

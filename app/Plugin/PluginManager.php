@@ -88,8 +88,15 @@ class PluginManager
             if ($existing) {
                 QueryBuilder::table('plugins')->where('slug', $slug)->update(['is_active' => 1]);
             } else {
+                // Get plugin info from manifest
+                $pluginInfo = $this->scanPlugin($slug);
+                
                 QueryBuilder::table('plugins')->insert([
                     'slug' => $slug,
+                    'name' => $pluginInfo['name'] ?? $slug,
+                    'description' => $pluginInfo['description'] ?? '',
+                    'version' => $pluginInfo['version'] ?? '1.0.0',
+                    'author' => $pluginInfo['author'] ?? 'Unknown',
                     'is_active' => 1,
                     'settings' => json_encode([])
                 ]);
@@ -148,5 +155,14 @@ class PluginManager
     protected function studly(string $value): string
     {
         return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $value)));
+    }
+
+    public function scanPlugin(string $slug): array
+    {
+        $manifestPath = BASE_PATH . '/content/plugins/' . $slug . '/plugin.json';
+        if (file_exists($manifestPath)) {
+            return json_decode(file_get_contents($manifestPath), true) ?: [];
+        }
+        return [];
     }
 }
