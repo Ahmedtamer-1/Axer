@@ -85,8 +85,15 @@
         element.replaceWith(svg);
     }
 
-    function createIcons(root) {
-        var scope = root || document;
+    function createIcons(rootOrOptions) {
+        // Real Lucide's createIcons() takes an *options* object
+        // ({ attrs: {...} }), not a DOM node to scope the search — a caller
+        // migrating from the CDN script (builder.js does exactly this)
+        // would otherwise hand this function something without
+        // querySelectorAll and crash the whole page.
+        var scope = (rootOrOptions && typeof rootOrOptions.querySelectorAll === 'function')
+            ? rootOrOptions
+            : document;
 
         return loadSprite().then(function () {
             var nodes = scope.querySelectorAll('[data-lucide]:not([data-icon-rendered])');

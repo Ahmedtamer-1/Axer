@@ -1,8 +1,86 @@
+<style>
+    .newsletter-section {
+        background-color: #f1f5f9;
+        text-align: center;
+        border-radius: 1rem;
+        padding: 3rem 1.5rem;
+        margin-bottom: 3rem;
+    }
+    .newsletter-form {
+        display: flex; gap: 0.5rem; justify-content: center;
+        margin-top: 1.5rem; flex-wrap: wrap;
+    }
+    .newsletter-input {
+        padding: 0.75rem 1rem; border-radius: 0.5rem;
+        border: 1px solid var(--border-color); width: 280px;
+        max-width: 100%; font: inherit; font-size: 1rem;
+    }
+    .newsletter-status {
+        margin-top: 0.75rem; font-size: 0.875rem; min-height: 1.2em;
+    }
+    .newsletter-status.is-error { color: #b91c1c; }
+    .newsletter-status.is-success { color: #15803d; }
+</style>
+
 <div class="section newsletter-section">
-    <h2>{{ title }}</h2>
-    <p style="color: #475569;">{{ subtitle }}</p>
-    <div class="newsletter-form">
-        <input type="email" class="newsletter-input" placeholder="your@email.com">
-        <button class="btn" style="background-color: #6366f1; color: white;">Subscribe</button>
-    </div>
+    <h2>{{ title | default('Join Our Newsletter') }}</h2>
+    <p style="color: #475569;">{{ subtitle | default('Get updates on new arrivals and exclusive offers.') }}</p>
+
+    <!--
+        This form previously had no action, method, or field name at all —
+        submitting "Subscribe" did nothing. The `subscribers` table has
+        existed unused since the initial migrations; it is now wired to
+        /newsletter/subscribe.
+    -->
+    <form class="newsletter-form" action="/newsletter/subscribe" method="POST" data-newsletter-form>
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <label for="newsletter-email" style="position:absolute;left:-9999px;">Email address</label>
+        <input id="newsletter-email" class="newsletter-input" type="email" name="email"
+               placeholder="your@email.com" required autocomplete="email">
+        <button type="submit" class="btn" style="background-color: var(--primary); color: white;">Subscribe</button>
+    </form>
+    <p class="newsletter-status" data-newsletter-status role="status" aria-live="polite"></p>
 </div>
+
+<script>
+(function () {
+    document.querySelectorAll('[data-newsletter-form]').forEach(function (form) {
+        if (form.dataset.bound) return;
+        form.dataset.bound = '1';
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var status = form.parentElement.querySelector('[data-newsletter-status]');
+            var button = form.querySelector('[type="submit"]');
+            var csrfInput = form.querySelector('input[name="_csrf"]');
+
+            if (button) button.disabled = true;
+
+            fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form)
+            })
+                .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+                .then(function (result) {
+                    if (status) {
+                        status.textContent = result.data.message || (result.ok ? 'Subscribed!' : 'Something went wrong.');
+                        status.className = 'newsletter-status ' + (result.ok ? 'is-success' : 'is-error');
+                    }
+                    if (result.ok) form.reset();
+                })
+                .catch(function () {
+                    if (status) {
+                        status.textContent = 'Could not subscribe right now. Please try again.';
+                        status.className = 'newsletter-status is-error';
+                    }
+                })
+                .finally(function () {
+                    if (button) button.disabled = false;
+                });
+        });
+    });
+})();
+</script>

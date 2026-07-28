@@ -131,7 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'settings' => [
                             'title' => 'Discover Our Products',
                             'content' => 'We offer the best quality products for your everyday needs. Browse our catalog and find amazing deals.',
-                            'image_url' => 'https://via.placeholder.com/600x400',
+                            // via.placeholder.com has shut down; every fresh
+                            // install shipped a broken image on its own home
+                            // page. Point at the local placeholder asset.
+                            'image_url' => '/assets/img/placeholder.svg',
                             'image_position' => 'right',
                             'bg_color' => '#f8fafc',
                             'text_color' => '#0f172a'

@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --bg-sidebar: #0f172a;
@@ -418,11 +417,28 @@
     <!-- Pass backend page data to JS -->
     <script>
         const PAGE_ID = <?= (int)$page['id'] ?>;
-        const INITIAL_BUILDER_DATA = <?= empty($page['builder_data']) ? '[]' : $page['builder_data'] ?>;
+        <?php
+        // The raw builder_data column was echoed straight into this
+        // <script> block. A saved block containing the literal string
+        // "</script>" would close the tag early and let the remainder of
+        // the value execute as markup/script — a stored-XSS path through
+        // page-builder content. Decoding and re-encoding with the JSON_HEX_*
+        // flags escapes </script>, <, >, &, and quotes for safe embedding.
+        $builderData = json_decode((string) ($page['builder_data'] ?? ''), true);
+        $builderJson = json_encode(
+            is_array($builderData) ? $builderData : [],
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+        );
+        ?>
+        const INITIAL_BUILDER_DATA = <?= $builderJson ?>;
     </script>
+    <!--
+        Not deferred: builder.js calls lucide.createIcons() synchronously as
+        soon as it loads, so window.lucide must already exist by then —
+        the same ordering the old unpkg <script> (also non-deferred)
+        guaranteed.
+    -->
+    <script src="/admin/assets/js/icons.js"></script>
     <script src="/admin/assets/js/builder.js"></script>
-    <script>
-        lucide.createIcons();
-    </script>
 </body>
 </html>

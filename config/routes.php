@@ -10,6 +10,7 @@ use Axer\Services\PixelService;
 use Axer\Services\ThemeService;
 use Axer\Controllers\Storefront\CartController;
 use Axer\Controllers\Storefront\CheckoutController;
+use Axer\Controllers\Storefront\NewsletterController;
 use Axer\Controllers\Storefront\ProductController;
 use Axer\Support\Str;
 
@@ -204,6 +205,9 @@ $router->post('/cart/remove', [CartController::class, 'remove']);
 $router->post('/checkout/process', [CheckoutController::class, 'process']);
 $router->post('/checkout/callback', [CheckoutController::class, 'callback']);
 $router->get('/checkout/callback', [CheckoutController::class, 'callback']);
+
+// Newsletter — the `subscribers` table existed with nothing routed to it.
+$router->post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
 
 // Storefront Products & Shop Routes
 $router->get('/products', [ProductController::class, 'index']);
