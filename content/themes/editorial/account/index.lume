@@ -1,0 +1,21 @@
+<div class="form-card" style="max-width: 560px;">
+    <span class="eyebrow">Account</span>
+    <h1 style="font-size: 1.6rem; margin-bottom: 0.5rem;">My Account</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0 0 2rem;">Signed in as {{ account.email }}.</p>
+
+    <div style="display: grid; gap: 0.5rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Name</span>
+            <span style="font-weight: 600;">{{ account.name }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Email</span>
+            <span style="font-weight: 600;">{{ account.email }}</span>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem;">
+        <a href="/products" class="btn btn-secondary" style="flex: 1; text-align: center;">Continue Shopping</a>
+        <a href="/account/logout" class="btn btn-primary" style="flex: 1; text-align: center;">Sign Out</a>
+    </div>
+</div>

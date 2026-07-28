@@ -1,0 +1,29 @@
+<div class="section container">
+    <div class="section-heading">
+        <span class="eyebrow">Featured</span>
+        <h2>{{ title | default('Best Sellers') }}</h2>
+    </div>
+
+    <div class="product-grid">
+        {% for fp in featured_products %}
+            <a href="/products/{{ fp.slug }}" class="product-card">
+                <div class="thumb">
+                    <img src="{{ fp.image_url }}" alt="{{ fp.name }}">
+                </div>
+                <h3>{{ fp.name }}</h3>
+                <p class="desc">{{ fp.description }}</p>
+                <span class="price">{{ store.currency_symbol }}{{ fp.price }}</span>
+            </a>
+        {% endfor %}
+
+        {% if products_empty %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <h3 style="margin-bottom: 0.5rem;">No products yet</h3>
+                <p style="margin-bottom: 1.5rem;">There are currently no active products in the shop catalog.</p>
+                {% if is_admin %}
+                    <a href="/admin/products" class="btn btn-secondary">Add Products in Admin</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>

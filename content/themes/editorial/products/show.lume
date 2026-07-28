@@ -1,0 +1,127 @@
+<div class="container">
+    <div class="pdp-layout">
+        <div id="product-gallery">
+            <div class="pdp-gallery-main">
+                <img id="main-image" src="" alt="{{ product.name }}" width="800" height="1000">
+            </div>
+            <div id="thumbnails-container" class="pdp-thumbs"></div>
+        </div>
+
+        <div>
+            <span class="eyebrow">Product</span>
+            <h1 style="font-size: 2rem; margin: 0 0 1rem;">{{ product.name }}</h1>
+            <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem;">
+                {{ store.currency_symbol }}<span id="product-price">{{ product.formatted_price }}</span>
+            </div>
+
+            <div style="font-size: 1.02rem; line-height: 1.8; color: var(--text-muted); margin-bottom: 2rem;">
+                {{ product.formatted_description | raw }}
+            </div>
+
+            <form action="/cart/add" method="POST" style="margin-bottom: 3rem;">
+                <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="variant_id" id="selected-variant-id" value="">
+
+                {% if has_variants %}
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; color: var(--secondary);">Select Variant</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                            {% for v in variants %}
+                                <button type="button" class="variant-btn" data-id="{{ v.id }}" data-price-override="{{ v.price_override }}">
+                                    {% if v.color_hex %}
+                                        <span style="width: 14px; height: 14px; border-radius: 50%; background-color: {{ v.color_hex }}; display: inline-block;"></span>
+                                    {% endif %}
+                                    {{ v.display_name }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}"
+                           style="width: 80px; padding: 0.9rem; border: 1px solid var(--border-color); text-align: center; font: inherit;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Add to Cart</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const basePrice = {{ product.price }};
+    const images = {{ images_json | raw }};
+
+    const mainImage = document.getElementById('main-image');
+    const thumbnailsContainer = document.getElementById('thumbnails-container');
+    const priceDisplay = document.getElementById('product-price');
+    const variantIdInput = document.getElementById('selected-variant-id');
+    const variantBtns = document.querySelectorAll('.variant-btn');
+
+    function renderGallery(variantId = null) {
+        let currentImages = images.filter(img => img.variant_id == variantId);
+
+        if (currentImages.length === 0) {
+            currentImages = images.filter(img => !img.variant_id);
+        }
+
+        if (currentImages.length === 0) {
+            mainImage.src = '/assets/img/placeholder.svg';
+            thumbnailsContainer.innerHTML = '';
+            return;
+        }
+
+        currentImages.sort((a, b) => b.is_primary - a.is_primary);
+
+        thumbnailsContainer.innerHTML = '';
+        currentImages.forEach((img, index) => {
+            const thumb = document.createElement('img');
+            thumb.src = img.url;
+            thumb.style.border = index === 0 ? '2px solid var(--secondary)' : '2px solid transparent';
+
+            thumb.onclick = () => {
+                mainImage.style.opacity = 0;
+                setTimeout(() => {
+                    mainImage.src = img.url;
+                    mainImage.style.opacity = 1;
+                }, 150);
+
+                Array.from(thumbnailsContainer.children).forEach(t => t.style.border = '2px solid transparent');
+                thumb.style.border = '2px solid var(--secondary)';
+            };
+
+            thumbnailsContainer.appendChild(thumb);
+        });
+
+        mainImage.src = currentImages[0].url;
+    }
+
+    function selectVariant(btn) {
+        variantBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const variantId = btn.getAttribute('data-id');
+        const priceOverride = btn.getAttribute('data-price-override');
+
+        variantIdInput.value = variantId;
+
+        if (priceOverride && priceOverride !== 'null' && priceOverride !== '') {
+            priceDisplay.textContent = parseFloat(priceOverride).toFixed(2);
+        } else {
+            priceDisplay.textContent = parseFloat(basePrice).toFixed(2);
+        }
+
+        renderGallery(variantId);
+    }
+
+    if (variantBtns.length > 0) {
+        selectVariant(variantBtns[0]);
+    } else {
+        renderGallery();
+    }
+
+    variantBtns.forEach(btn => {
+        btn.addEventListener('click', () => selectVariant(btn));
+    });
+</script>

@@ -1,0 +1,29 @@
+<div class="form-card">
+    <span class="eyebrow">Welcome Back</span>
+    <h1 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Sign In</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0 0 2rem;">Sign in to view your orders and account details.</p>
+
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/account/login">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+        <div class="form-field">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required autofocus value="{{ email }}">
+        </div>
+
+        <div class="form-field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--text-muted);">
+        Don't have an account? <a href="/account/register" style="color: var(--primary); font-weight: 700;">Create one</a>
+    </p>
+</div>

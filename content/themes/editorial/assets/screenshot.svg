@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <rect width="640" height="400" fill="#faf5ec"/>
+  <rect width="640" height="64" fill="#faf5ec"/>
+  <rect x="0" y="63" width="640" height="1" fill="#e6dccb"/>
+  <text x="32" y="38" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#3a2e28">Studio.</text>
+  <rect x="420" y="28" width="40" height="10" rx="2" fill="#2b241f"/>
+  <rect x="474" y="28" width="40" height="10" rx="2" fill="#2b241f"/>
+  <circle cx="568" cy="32" r="16" fill="none" stroke="#e6dccb"/>
+  <circle cx="604" cy="32" r="16" fill="none" stroke="#e6dccb"/>
+
+  <rect x="32" y="96" width="280" height="220" fill="#ede2d2"/>
+  <rect x="340" y="128" width="180" height="24" rx="2" fill="#3a2e28"/>
+  <rect x="340" y="164" width="220" height="10" rx="2" fill="#7c6f63"/>
+  <rect x="340" y="180" width="200" height="10" rx="2" fill="#7c6f63"/>
+  <rect x="340" y="210" width="130" height="34" fill="#b5623f"/>
+
+  <rect x="32" y="352" width="160" height="10" rx="2" fill="#3a2e28"/>
+  <rect x="240" y="352" width="160" height="10" rx="2" fill="#3a2e28"/>
+  <rect x="448" y="352" width="160" height="10" rx="2" fill="#3a2e28"/>
+</svg>

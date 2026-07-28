@@ -1,0 +1,122 @@
+<div class="container">
+    <div style="margin: 3rem 0 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+        <h1 style="font-size: 2.25rem;">Your Cart</h1>
+        <a href="/shop" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Continue Shopping</a>
+    </div>
+
+    {% if is_empty %}
+        <div class="empty-state" style="margin: 3rem 0 5rem;">
+            <i data-lucide="shopping-bag" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text-color);">Your cart is empty</h2>
+            <p style="margin-bottom: 2rem;">Explore our store to add items to your cart.</p>
+            <a href="/shop" class="btn btn-primary">Start Shopping</a>
+        </div>
+    {% else %}
+        <div class="cart-layout">
+            <div class="cart-panel">
+                {% for item in cart_items %}
+                    <div class="cart-line">
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="cart-thumb" loading="lazy" width="80" height="80">
+
+                        <div class="cart-info">
+                            <a href="/products/{{ item.slug }}" style="font-weight: 700; color: var(--text-color); text-decoration: none; font-size: 1.02rem;">
+                                {{ item.name }}
+                            </a>
+                            {% if item.variant_name %}
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">{{ item.variant_name }}</div>
+                            {% endif %}
+                            <div style="font-weight: 700; color: var(--primary); margin-top: 0.35rem;">
+                                {{ store.currency_symbol }}{{ item.formatted_price }}
+                            </div>
+                        </div>
+
+                        <form action="/cart/update" method="POST" class="cart-qty-form" data-no-busy>
+                            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+                            <input type="hidden" name="key" value="{{ item.key }}">
+                            <label for="qty-{{ item.key }}" style="position:absolute;left:-9999px;">Quantity for {{ item.name }}</label>
+                            <input id="qty-{{ item.key }}" class="cart-qty" type="number" name="quantity"
+                                   value="{{ item.quantity }}" min="1" max="99" data-auto-submit>
+                        </form>
+
+                        <form action="/cart/remove" method="POST" class="cart-remove-form">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+                            <input type="hidden" name="key" value="{{ item.key }}">
+                            <button type="submit" class="icon-button" title="Remove {{ item.name }}" aria-label="Remove {{ item.name }}">
+                                <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-panel">
+                <h2 style="font-size: 1.1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                    Order Summary
+                </h2>
+
+                {% if free_shipping_remaining %}
+                    <div class="shipping-nudge">
+                        Add <strong>{{ store.currency_symbol }}{{ free_shipping_remaining }}</strong> more to qualify for free delivery.
+                    </div>
+                {% endif %}
+
+                <div class="summary-row">
+                    <span style="color: var(--text-muted);">Subtotal</span>
+                    <span style="font-weight: 600;">{{ store.currency_symbol }}{{ cart_subtotal }}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span style="color: var(--text-muted);">Shipping</span>
+                    <span style="font-weight: 600;">{{ cart_shipping }}</span>
+                </div>
+
+                <div class="summary-total">
+                    <span style="font-size: 1.05rem; font-weight: 700;">Total</span>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">{{ store.currency_symbol }}{{ cart_total }}</span>
+                </div>
+
+                <form action="/checkout/process" method="POST">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+                    <h3 style="font-size: 0.9rem; margin-bottom: 1rem;">Delivery details</h3>
+
+                    <div class="form-field">
+                        <label for="co-name">Full name</label>
+                        <input id="co-name" name="name" type="text" required autocomplete="name" maxlength="200">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="co-email">Email</label>
+                        <input id="co-email" name="email" type="email" required autocomplete="email" maxlength="255">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="co-phone">Phone</label>
+                        <input id="co-phone" name="phone" type="tel" required autocomplete="tel"
+                               inputmode="tel" maxlength="20" placeholder="01xxxxxxxxx">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="co-address">Delivery address</label>
+                        <textarea id="co-address" name="address" rows="2" required
+                                  autocomplete="street-address" maxlength="500"></textarea>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="co-city">City</label>
+                        <input id="co-city" name="city" type="text" value="Cairo"
+                               autocomplete="address-level2" maxlength="100">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                        Proceed to Checkout
+                    </button>
+
+                    <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.85rem;">
+                        You will be redirected to our secure payment provider.
+                    </p>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>

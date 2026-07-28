@@ -1,0 +1,12 @@
+<div class="section" style="background-color: {{ bg_color | default('#faf5ec') }}; color: {{ text_color | default('#2b241f') }};">
+    <div class="container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+        <div style="order: {% if image_position == 'left' %}2{% else %}1{% endif %};">
+            <span class="eyebrow">Our Story</span>
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; line-height: 1.2;">{{ title }}</h2>
+            <p style="font-size: 1.05rem; line-height: 1.8; color: var(--text-muted);">{{ content }}</p>
+        </div>
+        <div style="order: {% if image_position == 'left' %}1{% else %}2{% endif %}; aspect-ratio: 4/3; overflow: hidden; border-radius: var(--radius);">
+            <img src="{{ image_url }}" alt="{{ title }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+    </div>
+</div>
