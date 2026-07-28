@@ -27,8 +27,8 @@
                 <?php if ($item['is_installed']): ?>
                     <button class="btn btn-secondary" disabled style="opacity: 0.7;"><i data-lucide="check"></i> Installed</button>
                 <?php else: ?>
-                    <form action="/admin/plugins/activate/<?= htmlspecialchars($item['slug']) ?>" method="POST">
-                        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                    <form action="/admin/plugins/activate/<?= htmlspecialchars($item['slug'], ENT_QUOTES, 'UTF-8') ?>" method="POST">
+                        <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit" class="btn btn-primary"><i data-lucide="download"></i> Install & Enable</button>
                     </form>
                 <?php endif; ?>

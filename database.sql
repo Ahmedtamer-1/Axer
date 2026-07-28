@@ -322,6 +322,7 @@ CREATE TABLE IF NOT EXISTS `plugins` (
             `author` VARCHAR(255) DEFAULT NULL,
             `is_active` TINYINT(1) NOT NULL DEFAULT 0,
             `settings` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
+            `settings_schema` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `hooks` LONGTEXT /* (JSON fallback) */ DEFAULT NULL,
             `installed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -31,11 +31,11 @@
                             <td style="font-weight: 600;">
                                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                                     <i data-lucide="plug" style="color: var(--primary);"></i>
-                                    <?= htmlspecialchars($plugin['name']) ?>
+                                    <?= htmlspecialchars($plugin['name'], ENT_QUOTES, 'UTF-8') ?>
                                 </div>
                             </td>
-                            <td style="color: var(--text-muted); max-width: 400px;"><?= htmlspecialchars($plugin['description']) ?></td>
-                            <td><span class="badge badge-secondary">v<?= htmlspecialchars($plugin['version']) ?></span></td>
+                            <td style="color: var(--text-muted); max-width: 400px;"><?= htmlspecialchars($plugin['description'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><span class="badge badge-secondary">v<?= htmlspecialchars($plugin['version'], ENT_QUOTES, 'UTF-8') ?></span></td>
                             <td>
                                 <?php if ($plugin['is_active']): ?>
                                     <span class="badge badge-success">Active</span>
@@ -45,16 +45,16 @@
                             </td>
                             <td style="text-align: right;">
                                 <div style="display: inline-flex; gap: 0.5rem;">
-                                    <a href="/admin/plugins/settings/<?= $plugin['slug'] ?>" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;"><i data-lucide="settings"></i> Configure</a>
-                                    
+                                    <a href="/admin/plugins/settings/<?= htmlspecialchars($plugin['slug'], ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;"><i data-lucide="settings"></i> Configure</a>
+
                                     <?php if ($plugin['is_active']): ?>
-                                        <form action="/admin/plugins/deactivate/<?= $plugin['slug'] ?>" method="POST" style="display: inline;">
-                                            <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                        <form action="/admin/plugins/deactivate/<?= htmlspecialchars($plugin['slug'], ENT_QUOTES, 'UTF-8') ?>" method="POST" style="display: inline;">
+                                            <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
                                             <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; color: var(--danger);"><i data-lucide="power"></i> Disable</button>
                                         </form>
                                     <?php else: ?>
-                                        <form action="/admin/plugins/activate/<?= $plugin['slug'] ?>" method="POST" style="display: inline;">
-                                            <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                        <form action="/admin/plugins/activate/<?= htmlspecialchars($plugin['slug'], ENT_QUOTES, 'UTF-8') ?>" method="POST" style="display: inline;">
+                                            <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
                                             <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;"><i data-lucide="zap"></i> Enable</button>
                                         </form>
                                     <?php endif; ?>

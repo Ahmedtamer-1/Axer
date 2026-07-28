@@ -2,5 +2,16 @@
   "name": "Google OAuth Login",
   "version": "1.0.0",
   "description": "Allow customers to sign in seamlessly with their Google account.",
-  "author": "Axer Team"
+  "author": "Axer Team",
+  "settings_schema": [
+    {
+      "name": "OAuth Credentials",
+      "settings": [
+        { "name": "client_id", "label": "Google Client ID", "type": "text", "required": true },
+        { "name": "client_secret", "label": "Google Client Secret", "type": "password", "required": true },
+        { "name": "redirect_uri", "label": "Redirect URI", "type": "url",
+          "placeholder": "https://yourstore.com/auth/google/callback" }
+      ]
+    }
+  ]
 }

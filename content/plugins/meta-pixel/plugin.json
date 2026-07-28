@@ -2,5 +2,16 @@
   "name": "Meta (Facebook) Pixel & CAPI",
   "version": "1.0.0",
   "description": "Client-side Facebook Pixel & server-side Conversions API integration.",
-  "author": "Axer Team"
+  "author": "Axer Team",
+  "settings_schema": [
+    {
+      "name": "Facebook Pixel",
+      "settings": [
+        { "name": "pixel_id", "label": "Facebook Pixel ID", "type": "text", "required": true,
+          "help": "Found in Meta Events Manager → Data Sources." },
+        { "name": "access_token", "label": "Conversions API Access Token", "type": "password",
+          "help": "Optional. Enables server-side event tracking in addition to the browser pixel." }
+      ]
+    }
+  ]
 }

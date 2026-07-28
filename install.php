@@ -111,6 +111,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Activate default theme
                 \Axer\Services\ThemeService::activateTheme('default');
 
+                // Register the bundled plugins as installed-but-inactive so
+                // the Plugins screen isn't empty on a fresh install and
+                // each one already has a row to save settings against.
+                // Nothing seeded these before — every plugin looked
+                // "not installed" until an admin manually activated it.
+                $pluginsDir = BASE_PATH . '/content/plugins';
+                $stmt = $pdo->prepare(
+                    "INSERT IGNORE INTO plugins (slug, name, description, version, author, is_active, settings, settings_schema)
+                     VALUES (?, ?, ?, ?, ?, 0, ?, ?)"
+                );
+
+                foreach (scandir($pluginsDir) ?: [] as $folder) {
+                    if ($folder === '.' || $folder === '..' || !is_dir($pluginsDir . '/' . $folder)) {
+                        continue;
+                    }
+
+                    $manifestPath = $pluginsDir . '/' . $folder . '/plugin.json';
+
+                    if (!is_file($manifestPath)) {
+                        continue;
+                    }
+
+                    $manifest = json_decode((string) file_get_contents($manifestPath), true) ?: [];
+
+                    $stmt->execute([
+                        $folder,
+                        $manifest['name'] ?? ucfirst($folder),
+                        $manifest['description'] ?? '',
+                        $manifest['version'] ?? '1.0.0',
+                        $manifest['author'] ?? 'Unknown',
+                        json_encode([]),
+                        json_encode($manifest['settings_schema'] ?? [], JSON_UNESCAPED_UNICODE),
+                    ]);
+                }
+
                 // Insert default 'Home' page
                 $defaultBuilderData = json_encode([
                     [

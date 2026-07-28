@@ -2,5 +2,15 @@
   "name": "Google Ads & GTM Integration",
   "version": "1.0.0",
   "description": "Track purchase conversions and attach Google Tag Manager.",
-  "author": "Axer Team"
+  "author": "Axer Team",
+  "settings_schema": [
+    {
+      "name": "Tracking",
+      "settings": [
+        { "name": "conversion_id", "label": "Google Ads Conversion ID", "type": "text",
+          "help": "Found in Google Ads → Tools → Conversions." },
+        { "name": "gtm_id", "label": "GTM Container ID", "type": "text", "placeholder": "GTM-XXXXXXX" }
+      ]
+    }
+  ]
 }

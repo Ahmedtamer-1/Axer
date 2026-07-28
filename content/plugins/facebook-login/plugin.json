@@ -2,5 +2,14 @@
   "name": "Facebook Social Login",
   "version": "1.0.0",
   "description": "Allow customers to sign in using Facebook OAuth 2.0.",
-  "author": "Axer Team"
+  "author": "Axer Team",
+  "settings_schema": [
+    {
+      "name": "OAuth Credentials",
+      "settings": [
+        { "name": "app_id", "label": "Facebook App ID", "type": "text", "required": true },
+        { "name": "app_secret", "label": "Facebook App Secret", "type": "password", "required": true }
+      ]
+    }
+  ]
 }
