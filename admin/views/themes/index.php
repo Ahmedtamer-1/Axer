@@ -68,27 +68,35 @@
 
 <div class="themes-grid">
     <?php foreach ($themes as $theme): ?>
+        <?php $slug = htmlspecialchars($theme['slug'], ENT_QUOTES, 'UTF-8'); ?>
         <div class="theme-card">
-            <div class="theme-screenshot">
-                <i data-lucide="palette" style="width: 48px; height: 48px; opacity: 0.5;"></i>
-            </div>
+            <?php if (!empty($theme['screenshot'])): ?>
+                <div class="theme-screenshot" style="padding: 0;">
+                    <img src="/admin/themes/screenshot/<?= $slug ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            <?php else: ?>
+                <div class="theme-screenshot">
+                    <i data-lucide="palette" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                </div>
+            <?php endif; ?>
             <div class="theme-body">
                 <div class="theme-name">
-                    <?= htmlspecialchars($theme['name']) ?>
+                    <?= htmlspecialchars($theme['name'], ENT_QUOTES, 'UTF-8') ?>
                     <?php if ($theme['is_active']): ?>
                         <span class="badge badge-published" style="font-size: 0.7rem; margin-left: 0.5rem;">Active</span>
                     <?php endif; ?>
                 </div>
-                <div class="theme-desc"><?= htmlspecialchars($theme['description']) ?></div>
+                <div class="theme-desc"><?= htmlspecialchars($theme['description'], ENT_QUOTES, 'UTF-8') ?></div>
                 <div class="theme-meta">
-                    <span>Version: <?= htmlspecialchars($theme['version']) ?></span>
-                    <span>By: <?= htmlspecialchars($theme['author']) ?></span>
+                    <span>Version: <?= htmlspecialchars($theme['version'], ENT_QUOTES, 'UTF-8') ?></span>
+                    <span>By: <?= htmlspecialchars($theme['author'], ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
                 <div class="theme-actions">
                     <?php if ($theme['is_active']): ?>
-                        <a href="/admin/themes/customize/<?= $theme['slug'] ?>" class="btn btn-primary" style="flex-grow:1;"><i data-lucide="settings"></i> Customize Theme</a>
+                        <a href="/admin/themes/customize/<?= $slug ?>" class="btn btn-primary" style="flex-grow:1;"><i data-lucide="settings"></i> Customize Theme</a>
                     <?php else: ?>
-                        <form action="/admin/themes/activate/<?= $theme['slug'] ?>" method="POST" style="flex-grow:1; display:flex;">
+                        <form action="/admin/themes/activate/<?= $slug ?>" method="POST" style="flex-grow:1; display:flex;">
+                            <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
                             <button type="submit" class="btn btn-secondary" style="flex-grow:1;"><i data-lucide="power"></i> Activate</button>
                         </form>
                     <?php endif; ?>

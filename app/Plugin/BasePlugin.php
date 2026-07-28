@@ -16,27 +16,12 @@ abstract class BasePlugin
     abstract public function activate(): void;
     abstract public function deactivate(): void;
 
+    /**
+     * Fallback for a plugin that declares its config form in PHP instead
+     * of plugin.json's settings_schema (which PluginController prefers,
+     * since it can be read without executing the plugin's code at all).
+     */
     public function getSettingsSchema(): array
-    {
-        return [];
-    }
-
-    public function getAdminRoutes(): array
-    {
-        return [];
-    }
-
-    public function getTemplateHooks(): array
-    {
-        return [];
-    }
-
-    public function getMigrations(): array
-    {
-        return [];
-    }
-
-    public function getCronJobs(): array
     {
         return [];
     }

@@ -1,0 +1,27 @@
+<div class="section" style="padding: 3rem 1rem;">
+    {% if title %}
+        <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--text-color);">{{ title }}</h2>
+    {% endif %}
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+        {% if image_1 %}
+            <div style="aspect-ratio: 1/1; border-radius: 0.75rem; overflow: hidden;">
+                <img src="{{ image_1 }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        {% endif %}
+        {% if image_2 %}
+            <div style="aspect-ratio: 1/1; border-radius: 0.75rem; overflow: hidden;">
+                <img src="{{ image_2 }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        {% endif %}
+        {% if image_3 %}
+            <div style="aspect-ratio: 1/1; border-radius: 0.75rem; overflow: hidden;">
+                <img src="{{ image_3 }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        {% endif %}
+        {% if image_4 %}
+            <div style="aspect-ratio: 1/1; border-radius: 0.75rem; overflow: hidden;">
+                <img src="{{ image_4 }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        {% endif %}
+    </div>
+</div>

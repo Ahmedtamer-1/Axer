@@ -1,0 +1,8 @@
+<div class="section" style="background: var(--secondary); color: #f2ece2; text-align: center; margin: 2rem 0;">
+    <div class="container" style="padding: 4rem 2rem;">
+        <span class="eyebrow" style="color: #d99a7c;">Don't Miss Out</span>
+        <h2 style="color: #fff; font-size: 2.25rem; margin-bottom: 0.75rem;">{{ title | default('Ready to get started?') }}</h2>
+        <p style="color: #cbbfae; font-size: 1.05rem; margin-bottom: 2rem;">{{ subtitle | default('') }}</p>
+        <a href="{{ button_url | default('/shop') }}" class="btn btn-primary">{{ button_text | default('Shop Now') }}</a>
+    </div>
+</div>

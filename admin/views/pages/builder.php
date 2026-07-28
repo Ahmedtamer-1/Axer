@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
+    <meta name="csrf-token" content="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
     <title><?= htmlspecialchars($title) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -410,6 +410,30 @@
                     <div class="block-template-icon"><i data-lucide="mail"></i></div>
                     <div class="block-template-name">Newsletter Signup</div>
                 </div>
+                <div class="block-template-card" data-type="text-image">
+                    <div class="block-template-icon"><i data-lucide="image"></i></div>
+                    <div class="block-template-name">Text + Image</div>
+                </div>
+                <div class="block-template-card" data-type="image-gallery">
+                    <div class="block-template-icon"><i data-lucide="grid-3x3"></i></div>
+                    <div class="block-template-name">Image Gallery</div>
+                </div>
+                <div class="block-template-card" data-type="faq">
+                    <div class="block-template-icon"><i data-lucide="circle-help"></i></div>
+                    <div class="block-template-name">FAQ</div>
+                </div>
+                <div class="block-template-card" data-type="testimonials">
+                    <div class="block-template-icon"><i data-lucide="quote"></i></div>
+                    <div class="block-template-name">Testimonials</div>
+                </div>
+                <div class="block-template-card" data-type="cta">
+                    <div class="block-template-icon"><i data-lucide="megaphone"></i></div>
+                    <div class="block-template-name">Call to Action</div>
+                </div>
+                <div class="block-template-card" data-type="spacer">
+                    <div class="block-template-icon"><i data-lucide="move-vertical"></i></div>
+                    <div class="block-template-name">Spacer</div>
+                </div>
             </div>
         </div>
     </div>
@@ -439,6 +463,7 @@
         guaranteed.
     -->
     <script src="/admin/assets/js/icons.js"></script>
+    <script src="/admin/assets/js/media-picker.js"></script>
     <script src="/admin/assets/js/builder.js"></script>
 </body>
 </html>

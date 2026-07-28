@@ -9,7 +9,10 @@ class Plugin extends BasePlugin
 {
     public function register(): void
     {
-        Event::listen('checkout.completed', [$this, 'handleCheckout']);
+        // Core dispatches 'order.paid' (CheckoutController, WebhookController)
+        // — this used to listen for 'checkout.completed', an event nothing
+        // ever fired, so the handler never ran.
+        Event::listen('order.paid', [$this, 'handleCheckout']);
     }
 
     public function activate(): void {}

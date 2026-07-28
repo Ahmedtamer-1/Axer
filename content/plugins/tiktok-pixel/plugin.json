@@ -2,5 +2,14 @@
   "name": "TikTok Pixel & Events API",
   "version": "1.0.0",
   "description": "Client & Server-side TikTok Events tracking for store conversions.",
-  "author": "Axer Team"
+  "author": "Axer Team",
+  "settings_schema": [
+    {
+      "name": "TikTok Pixel",
+      "settings": [
+        { "name": "pixel_id", "label": "TikTok Pixel ID", "type": "text", "required": true,
+          "help": "Found in TikTok Ads Manager → Assets → Events." }
+      ]
+    }
+  ]
 }

@@ -21,7 +21,7 @@
                 
                 <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: 0.5rem;">
                     <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">
-                        EGP {{ fp.price }}
+                        {{ store.currency_symbol }}{{ fp.price }}
                     </span>
                     
                     <form action="/cart/add" method="POST" style="margin: 0;">
@@ -40,7 +40,9 @@
                 <i data-lucide="package-open" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem; opacity: 0.7;"></i>
                 <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.5rem;">No Products Found</h2>
                 <p style="margin-bottom: 1.5rem;">There are currently no active products in the shop catalog.</p>
-                <a href="/admin/products" class="btn btn-primary">Add Products in Admin</a>
+                {% if is_admin %}
+                    <a href="/admin/products" class="btn btn-primary">Add Products in Admin</a>
+                {% endif %}
             </div>
         {% endif %}
     </div>

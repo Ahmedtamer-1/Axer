@@ -1,0 +1,79 @@
+<style>
+    .editorial-newsletter {
+        background: var(--secondary);
+        color: #f2ece2;
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .editorial-newsletter h2 { color: #fff; }
+    .editorial-newsletter p { color: #cbbfae; margin: 0.75rem 0 2rem; }
+    .newsletter-form {
+        display: flex; gap: 0.75rem; justify-content: center;
+        flex-wrap: wrap; max-width: 480px; margin: 0 auto;
+    }
+    .newsletter-input {
+        flex: 1; min-width: 220px;
+        padding: 0.9rem 1.1rem; border-radius: var(--radius);
+        border: 1px solid #5a4a3f; background: #f2ece2; font: inherit; font-size: 0.95rem;
+    }
+    .newsletter-status { margin-top: 1rem; font-size: 0.85rem; min-height: 1.2em; }
+    .newsletter-status.is-error { color: #e8b7a8; }
+    .newsletter-status.is-success { color: #bcd39c; }
+</style>
+
+<div class="editorial-newsletter">
+    <span class="eyebrow" style="color: #d99a7c;">Stay in Touch</span>
+    <h2>{{ title | default('Join Our Newsletter') }}</h2>
+    <p>{{ subtitle | default('Get updates on new arrivals and exclusive offers.') }}</p>
+
+    <form class="newsletter-form" action="/newsletter/subscribe" method="POST" data-newsletter-form>
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <label for="newsletter-email-editorial" style="position:absolute;left:-9999px;">Email address</label>
+        <input id="newsletter-email-editorial" class="newsletter-input" type="email" name="email"
+               placeholder="your@email.com" required autocomplete="email">
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+    </form>
+    <p class="newsletter-status" data-newsletter-status role="status" aria-live="polite"></p>
+</div>
+
+<script>
+(function () {
+    document.querySelectorAll('[data-newsletter-form]').forEach(function (form) {
+        if (form.dataset.bound) return;
+        form.dataset.bound = '1';
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var status = form.parentElement.querySelector('[data-newsletter-status]');
+            var button = form.querySelector('[type="submit"]');
+
+            if (button) button.disabled = true;
+
+            fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form)
+            })
+                .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+                .then(function (result) {
+                    if (status) {
+                        status.textContent = result.data.message || (result.ok ? 'Subscribed!' : 'Something went wrong.');
+                        status.className = 'newsletter-status ' + (result.ok ? 'is-success' : 'is-error');
+                    }
+                    if (result.ok) form.reset();
+                })
+                .catch(function () {
+                    if (status) {
+                        status.textContent = 'Could not subscribe right now. Please try again.';
+                        status.className = 'newsletter-status is-error';
+                    }
+                })
+                .finally(function () {
+                    if (button) button.disabled = false;
+                });
+        });
+    });
+})();
+</script>

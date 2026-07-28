@@ -31,7 +31,7 @@
             <div class="alert-error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
         <form method="POST" action="/admin/login">
-            <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+            <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" required autofocus placeholder="admin@example.com">

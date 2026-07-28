@@ -1,6 +1,13 @@
+<?php
+
+use Axer\Support\SettingsSchema;
+
+$groups = SettingsSchema::normalizeGroups($schema);
+$settings = $plugin['settings'] ?? [];
+?>
 <div class="header-bar">
     <div class="header-title">
-        <h1>Plugin Settings: <?= htmlspecialchars($plugin['name']) ?></h1>
+        <h1>Plugin Settings: <?= htmlspecialchars($plugin['name'], ENT_QUOTES, 'UTF-8') ?></h1>
         <p>Configure API credentials and settings for this extension.</p>
     </div>
     <div class="header-actions">
@@ -9,25 +16,24 @@
 </div>
 
 <div class="card" style="max-width: 650px;">
-    <form method="POST" action="/admin/plugins/settings/<?= htmlspecialchars($plugin['slug']) ?>">
-        <input type="hidden" name="_csrf" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-        
-        <?php if (empty($schema)): ?>
+    <form method="POST" action="/admin/plugins/settings/<?= htmlspecialchars($plugin['slug'], ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+
+        <?php if ($groups === []): ?>
             <p style="color: var(--text-muted);">This plugin does not require any custom settings configuration.</p>
         <?php else: ?>
-            <?php foreach ($schema as $field): 
-                $val = $plugin['settings'][$field['name']] ?? '';
-            ?>
-                <div class="form-group">
-                    <label class="form-label"><?= htmlspecialchars($field['label']) ?></label>
-                    <?php if (($field['type'] ?? 'text') === 'password'): ?>
-                        <input type="password" class="form-control" name="settings[<?= htmlspecialchars($field['name']) ?>]" value="<?= htmlspecialchars($val) ?>" placeholder="••••••••">
-                    <?php elseif (($field['type'] ?? 'text') === 'textarea'): ?>
-                        <textarea class="form-control" rows="4" name="settings[<?= htmlspecialchars($field['name']) ?>]"><?= htmlspecialchars($val) ?></textarea>
-                    <?php else: ?>
-                        <input type="text" class="form-control" name="settings[<?= htmlspecialchars($field['name']) ?>]" value="<?= htmlspecialchars($val) ?>">
-                    <?php endif; ?>
-                </div>
+            <?php foreach ($groups as $group): ?>
+                <?php if (($group['name'] ?? '') !== ''): ?>
+                    <h3 style="font-size: 0.95rem; font-weight: 700; margin: 1.75rem 0 1rem; color: var(--text-color);"><?= htmlspecialchars($group['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                <?php endif; ?>
+
+                <?php foreach (($group['settings'] ?? []) as $field): ?>
+                    <?php
+                    $fieldNamePrefix = 'settings';
+                    $value = $settings[$field['name']] ?? '';
+                    require BASE_PATH . '/admin/views/partials/settings-field.php';
+                    ?>
+                <?php endforeach; ?>
             <?php endforeach; ?>
 
             <div style="margin-top: 1.5rem; text-align: right;">

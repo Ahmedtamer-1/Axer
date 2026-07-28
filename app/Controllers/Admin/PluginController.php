@@ -4,7 +4,9 @@ namespace Axer\Controllers\Admin;
 
 use Axer\Core\Request;
 use Axer\Core\Response;
+use Axer\Core\Session;
 use Axer\Plugin\PluginManager;
+use Axer\Support\SettingsSchema;
 
 class PluginController extends AdminController
 {
@@ -18,7 +20,7 @@ class PluginController extends AdminController
 
     public function index(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         
         $installedPlugins = $this->manager->getInstalledPlugins();
 
@@ -30,7 +32,7 @@ class PluginController extends AdminController
 
     public function marketplace(Request $request): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
 
         $catalogFile = BASE_PATH . '/content/plugin-catalog.json';
         $catalog = [];
@@ -52,21 +54,21 @@ class PluginController extends AdminController
 
     public function activate(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         $this->manager->activate($slug);
         return $this->redirect('/admin/plugins');
     }
 
     public function deactivate(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
         $this->manager->deactivate($slug);
         return $this->redirect('/admin/plugins');
     }
 
     public function settings(Request $request, string $slug): Response
     {
-        $this->checkAuth($request);
+        $this->checkAuth($request, 'superadmin');
 
         $plugins = $this->manager->getInstalledPlugins();
         $target = null;
@@ -81,24 +83,51 @@ class PluginController extends AdminController
             return $this->redirect('/admin/plugins');
         }
 
-        // Fetch settings schema from main plugin class
-        $schema = [];
-        $className = 'Axer\\Plugins\\' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $slug))) . '\\Plugin';
-        if (class_exists($className)) {
-            $instance = new $className($target['settings'] ?? []);
-            $schema = $instance->getSettingsSchema();
+        // The manifest (plugin.json's settings_schema) is the source of
+        // truth — it can be read without executing any plugin PHP, so an
+        // inactive plugin's config form still renders. Only fall back to
+        // the class's getSettingsSchema() for a plugin that declares its
+        // schema in PHP instead, which requires loading it first: before
+        // this, class_exists() only ever succeeded for a plugin that was
+        // already active (PluginManager::init() only requires active
+        // plugins' main.php), so every inactive plugin's settings page
+        // rendered as "no custom settings" — the reported bug.
+        $schema = $target['settings_schema'] ?? [];
+
+        if ($schema === []) {
+            $this->manager->loadPlugin($slug);
+            $className = 'Axer\\Plugins\\' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $slug))) . '\\Plugin';
+
+            if (class_exists($className)) {
+                $instance = new $className($target['settings'] ?? []);
+                $schema = $instance->getSettingsSchema();
+            }
         }
 
         if ($request->method() === 'POST') {
-            $settings = $request->post('settings') ?? [];
-            $this->manager->savePluginSettings($slug, $settings);
+            $posted = $request->post('settings') ?? [];
+            $sanitized = SettingsSchema::sanitize($schema, is_array($posted) ? $posted : [], $target['settings'] ?? []);
+
+            if ($sanitized['missingRequired'] !== []) {
+                Session::flash('error', 'Please fill in: ' . implode(', ', $sanitized['missingRequired']));
+
+                return $this->renderAdmin('plugins/settings', [
+                    'title' => 'Plugin Settings — ' . $target['name'],
+                    'plugin' => array_merge($target, ['settings' => $sanitized['values']]),
+                    'schema' => $schema,
+                ]);
+            }
+
+            $this->manager->savePluginSettings($slug, $sanitized['values']);
+            Session::flash('success', 'Plugin settings saved.');
+
             return $this->redirect('/admin/plugins/settings/' . $slug);
         }
 
         return $this->renderAdmin('plugins/settings', [
             'title' => 'Plugin Settings — ' . $target['name'],
             'plugin' => $target,
-            'schema' => $schema
+            'schema' => $schema,
         ]);
     }
 }

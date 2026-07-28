@@ -1,5 +1,6 @@
 <?php
 
+use Axer\Auth\Roles;
 use Axer\Core\Csrf;
 use Axer\Support\Asset;
 
@@ -19,10 +20,18 @@ $navItems = [
     ['path' => '/admin/media',     'icon' => 'image',            'label' => 'Media'],
     ['path' => '/admin/orders',    'icon' => 'receipt',          'label' => 'Orders'],
     ['path' => '/admin/pages',     'icon' => 'file-text',        'label' => 'Pages'],
-    ['path' => '/admin/themes',    'icon' => 'palette',          'label' => 'Themes'],
-    ['path' => '/admin/plugins',   'icon' => 'plug',             'label' => 'Plugins'],
-    ['path' => '/admin/settings',  'icon' => 'settings',         'label' => 'Settings'],
+    ['path' => '/admin/themes',    'icon' => 'palette',          'label' => 'Themes',   'role' => 'superadmin'],
+    ['path' => '/admin/plugins',   'icon' => 'plug',             'label' => 'Plugins',  'role' => 'superadmin'],
+    ['path' => '/admin/settings',  'icon' => 'settings',         'label' => 'Settings', 'role' => 'superadmin'],
 ];
+
+// Settings/Themes/Plugins are gated to superadmin by AdminAuthMiddleware;
+// the nav used to render all 8 items for any logged-in admin regardless
+// of role, which just meant a plain admin got a 403 after clicking.
+$navItems = array_values(array_filter(
+    $navItems,
+    static fn(array $item): bool => !isset($item['role']) || Roles::atLeast($item['role'])
+));
 
 /**
  * Match on the path segment, not a substring of the whole URI.

@@ -2,6 +2,7 @@
 
 namespace Axer\Controllers\Admin;
 
+use Axer\Auth\Roles;
 use Axer\Core\Controller;
 use Axer\Core\Request;
 use Axer\Core\Response;
@@ -21,11 +22,28 @@ class AdminController extends Controller
      * response pipeline entirely: no security headers, no output-buffer
      * cleanup, and untestable. It now throws a control-flow exception that
      * the base controller turns into a real redirect Response.
+     *
+     * The route group now also carries \Axer\Auth\Middleware\AdminAuthMiddleware,
+     * which performs this same check before the controller is even
+     * constructed. This call stays in place as a cheap second layer — if a
+     * future route is ever registered without the middleware, this is
+     * still here to catch it.
      */
-    protected function checkAuth(Request $request): void
+    protected function checkAuth(Request $request, string $minRole = 'admin'): void
     {
-        if (isset($_SESSION['admin_user'])) {
+        if (isset($_SESSION['admin_user']) && Roles::atLeast($minRole)) {
             return;
+        }
+
+        if (isset($_SESSION['admin_user'])) {
+            // Logged in, but the wrong role — not a login problem.
+            if ($request->expectsJson()) {
+                throw new HttpResponseException(
+                    Response::json(['success' => false, 'message' => 'You do not have permission to do that.'], 403)
+                );
+            }
+
+            throw new HttpResponseException(new Response('403 Forbidden — you do not have permission to view this page.', 403));
         }
 
         // Send the visitor back where they were headed after logging in.

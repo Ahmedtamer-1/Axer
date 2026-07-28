@@ -1,0 +1,53 @@
+{
+    "name": "Editorial",
+    "description": "A warm, magazine-style theme with serif headlines, a cream canvas, and a muted terracotta accent — built for boutique and lifestyle brands.",
+    "version": "1.0.0",
+    "author": "Axer Team",
+    "author_url": "https://Axer.org",
+    "screenshot": "assets/screenshot.svg",
+    "settings": {
+        "colors": {
+            "primary": "#b5623f",
+            "secondary": "#3a2e28",
+            "background": "#faf5ec",
+            "text": "#2b241f"
+        },
+        "typography": {
+            "heading_font": "Playfair Display",
+            "body_font": "Inter"
+        },
+        "layout": {
+            "container_width": "1240px",
+            "button_radius": "2px"
+        },
+        "store": {
+            "name": "Axer Store",
+            "tagline": "Considered goods, thoughtfully made."
+        }
+    },
+    "settings_schema": [
+        {
+            "name": "Colors",
+            "settings": [
+                { "name": "colors.primary", "label": "Accent Color", "type": "color" },
+                { "name": "colors.secondary", "label": "Ink Color", "type": "color" },
+                { "name": "colors.background", "label": "Canvas Color", "type": "color" },
+                { "name": "colors.text", "label": "Body Text Color", "type": "color" }
+            ]
+        },
+        {
+            "name": "Typography",
+            "settings": [
+                { "name": "typography.heading_font", "label": "Headline Font", "type": "select", "options": ["Playfair Display", "Lora", "Georgia", "Outfit"] },
+                { "name": "typography.body_font", "label": "Body Font", "type": "select", "options": ["Inter", "Outfit", "Lora", "Roboto"] }
+            ]
+        },
+        {
+            "name": "Layout & Styling",
+            "settings": [
+                { "name": "layout.container_width", "label": "Container Width", "type": "text" },
+                { "name": "layout.button_radius", "label": "Button Roundness", "type": "select", "options": ["0px", "2px", "0.5rem", "999px"] }
+            ]
+        }
+    ]
+}

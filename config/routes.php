@@ -6,8 +6,8 @@ use Axer\Core\Response;
 use Axer\Core\Router;
 use Axer\Database\QueryBuilder;
 use Axer\Services\CartService;
-use Axer\Services\PixelService;
 use Axer\Services\ThemeService;
+use Axer\Controllers\Storefront\AccountController;
 use Axer\Controllers\Storefront\CartController;
 use Axer\Controllers\Storefront\CheckoutController;
 use Axer\Controllers\Storefront\NewsletterController;
@@ -20,6 +20,68 @@ use Axer\Support\Str;
 $router->get('/admin', static function () {
     return Response::redirect('/admin/dashboard');
 });
+
+/**
+ * Serve a theme's own static assets (CSS, JS, fonts, images).
+ *
+ * The `asset_url` template filter has always emitted `/theme-assets/<path>`
+ * (app/Template/Filters.php), but nothing ever served that prefix — a
+ * theme had no way to ship a real stylesheet and had to inline every rule
+ * into its .lume files instead. Confined to the active theme's assets/
+ * directory via realpath(), with an extension whitelist so this can't be
+ * used to read arbitrary files.
+ */
+$router->get('/theme-assets/{path}', static function (Request $request, string $path) {
+    $theme = ThemeService::getActiveTheme();
+    $slug = $theme['slug'] ?? 'default';
+
+    if (!preg_match('/^[a-z0-9][a-z0-9_-]*$/i', $slug)) {
+        return Response::notFound();
+    }
+
+    $assetsRoot = realpath(BASE_PATH . '/content/themes/' . $slug . '/assets');
+
+    if ($assetsRoot === false) {
+        return Response::notFound();
+    }
+
+    $requested = realpath($assetsRoot . '/' . $path);
+
+    if (
+        $requested === false
+        || !str_starts_with($requested, $assetsRoot . DIRECTORY_SEPARATOR)
+        || !is_file($requested)
+    ) {
+        return Response::notFound();
+    }
+
+    $extension = strtolower(pathinfo($requested, PATHINFO_EXTENSION));
+
+    $mimeTypes = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'svg' => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'webp' => 'image/webp',
+        'woff2' => 'font/woff2',
+    ];
+
+    if (!isset($mimeTypes[$extension])) {
+        return Response::notFound();
+    }
+
+    $content = file_get_contents($requested);
+
+    if ($content === false) {
+        return Response::notFound();
+    }
+
+    return (new Response($content))
+        ->setHeader('Content-Type', $mimeTypes[$extension])
+        ->cache(86400 * 7);
+})->where('path', '[A-Za-z0-9_\-./]+');
 
 /**
  * Render a storefront page from its builder blocks.
@@ -35,10 +97,16 @@ if (!class_exists('AxerStorefrontPage', false)) {
         public static function render(Request $request, string $slug): Response
         {
             try {
-                $page = QueryBuilder::table('pages')
-                    ->where('slug', $slug)
-                    ->where('status', 'published')
-                    ->first();
+                $isAdmin = isset($_SESSION['admin_user']);
+                $isPreview = $isAdmin && $request->get('preview') === '1';
+
+                $query = QueryBuilder::table('pages')->where('slug', $slug);
+
+                if (!$isPreview) {
+                    $query->where('status', 'published');
+                }
+
+                $page = $query->first();
 
                 if ($page === null) {
                     return Response::notFound();
@@ -51,21 +119,19 @@ if (!class_exists('AxerStorefrontPage', false)) {
                 // One engine for the whole page, not one per section.
                 $engine = ThemeService::engine($themeSlug);
 
-                $pixels = new PixelService();
                 $builderData = json_decode((string) ($page['builder_data'] ?? '[]'), true);
 
                 $content = is_array($builderData) && $builderData !== []
                     ? self::renderBlocks($builderData, $engine, $themePath, $page)
                     : (string) ($page['content'] ?? '');
 
-                $store = ThemeService::storeSettings();
+                if ($isPreview && $page['status'] !== 'published') {
+                    $content = self::draftPreviewBanner() . $content;
+                }
 
-                $html = ThemeService::render('layouts/theme', [
-                    'page_title' => (($page['seo_title'] ?? '') ?: $page['title']) . ' — ' . $store['name'],
+                $html = ThemeService::wrapContentInLayout($content, [
+                    'page_title' => ($page['seo_title'] ?? '') ?: $page['title'],
                     'meta_description' => Str::excerpt(($page['seo_description'] ?? '') ?: ($page['content'] ?? ''), 160),
-                    'content' => $content,
-                    'head_scripts' => $pixels->getClientHeadScripts(),
-                    'footer_scripts' => $pixels->getClientFooterScripts(),
                 ]);
 
                 return new Response($html);
@@ -189,8 +255,107 @@ if (!class_exists('AxerStorefrontPage', false)) {
                     . nl2br($escape($settings['content'] ?? '')) . '</p></div>';
             }
 
+            if ($type === 'text-image') {
+                $html = '<div class="section" style="padding: 3rem 1rem; background:' . $escape($settings['bg_color'] ?? '#f8fafc') . ';'
+                    . ' color:' . $escape($settings['text_color'] ?? '#0f172a') . ';">'
+                    . '<div style="max-width: 1000px; margin: 0 auto;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="font-size: 2rem; margin-bottom: 1rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<p style="font-size: 1.1rem; line-height: 1.7;">' . nl2br($escape($settings['content'] ?? '')) . '</p>';
+
+                if (!empty($settings['image_url'])) {
+                    $html .= '<img src="' . $escape($settings['image_url']) . '" alt="" style="width: 100%; max-height: 420px; object-fit: cover; margin-top: 1.5rem; border-radius: 0.75rem;">';
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'image-gallery') {
+                $html = '<div class="section" style="padding: 3rem 1rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+
+                foreach (['image_1', 'image_2', 'image_3', 'image_4'] as $key) {
+                    if (!empty($settings[$key])) {
+                        $html .= '<img src="' . $escape($settings[$key]) . '" alt="" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 0.5rem;">';
+                    }
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'faq') {
+                $html = '<div class="section" style="max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                foreach ([1, 2, 3] as $n) {
+                    if (!empty($settings["q{$n}"])) {
+                        $html .= '<div style="border-bottom: 1px solid #e2e8f0; padding: 1.25rem 0;">'
+                            . '<h3 style="font-weight: 700; margin-bottom: 0.5rem;">' . $escape($settings["q{$n}"]) . '</h3>'
+                            . '<p style="color: #64748b;">' . $escape($settings["a{$n}"] ?? '') . '</p></div>';
+                    }
+                }
+
+                return $html . '</div>';
+            }
+
+            if ($type === 'testimonials') {
+                $html = '<div class="section" style="padding: 3rem 1rem;">';
+
+                if (!empty($settings['title'])) {
+                    $html .= '<h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem;">' . $escape($settings['title']) . '</h2>';
+                }
+
+                $html .= '<div style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">';
+
+                foreach ([1, 2, 3] as $n) {
+                    if (!empty($settings["quote{$n}"])) {
+                        $html .= '<div style="border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem;">'
+                            . '<p style="margin-bottom: 1rem;">"' . $escape($settings["quote{$n}"]) . '"</p>'
+                            . '<div style="font-weight: 700;">' . $escape($settings["author{$n}"] ?? '') . '</div></div>';
+                    }
+                }
+
+                return $html . '</div></div>';
+            }
+
+            if ($type === 'cta') {
+                return '<div class="section" style="background: #0f172a; color: #fff; text-align: center; padding: 4rem 2rem; border-radius: 1rem; margin: 2rem 0;">'
+                    . '<h2 style="color: #fff; font-size: 2rem; margin-bottom: 0.75rem;">' . $escape($settings['title'] ?? 'Ready to get started?') . '</h2>'
+                    . '<p style="opacity: 0.85; margin-bottom: 2rem;">' . $escape($settings['subtitle'] ?? '') . '</p>'
+                    . '<a href="' . $escape($settings['button_url'] ?? '/shop') . '" style="display: inline-block; padding: 0.875rem 2.25rem; background: #fff; color: #0f172a; font-weight: 700; text-decoration: none; border-radius: 0.5rem;">'
+                    . $escape($settings['button_text'] ?? 'Shop Now') . '</a></div>';
+            }
+
+            if ($type === 'spacer') {
+                $height = preg_match('/^[0-9.]+(px|rem|em|vh)$/', (string) ($settings['height'] ?? '')) ? $settings['height'] : '3rem';
+
+                return '<div style="height: ' . $escape($height) . ';" aria-hidden="true"></div>';
+            }
+
             // Unknown block: fall back to the page's own body content.
             return (string) ($page['content'] ?? '');
+        }
+
+        /**
+         * Shown above a draft page's content when an admin loads it with
+         * ?preview=1. Inline-styled so it renders regardless of theme.
+         */
+        protected static function draftPreviewBanner(): string
+        {
+            return '<div style="background:#f59e0b;color:#1e1500;text-align:center;'
+                . 'padding:0.75rem 1rem;font-weight:700;font-size:0.9rem;">'
+                . 'Draft preview — this page is not published yet.</div>';
         }
     }
 }
@@ -208,6 +373,15 @@ $router->get('/checkout/callback', [CheckoutController::class, 'callback']);
 
 // Newsletter — the `subscribers` table existed with nothing routed to it.
 $router->post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+
+// Customer Accounts — registered ahead of the /{slug} wildcard below so
+// it cannot be shadowed by a CMS page of the same slug.
+$router->get('/account', [AccountController::class, 'dashboard']);
+$router->get('/account/login', [AccountController::class, 'showLogin']);
+$router->post('/account/login', [AccountController::class, 'login']);
+$router->get('/account/register', [AccountController::class, 'showRegister']);
+$router->post('/account/register', [AccountController::class, 'register']);
+$router->get('/account/logout', [AccountController::class, 'logout']);
 
 // Storefront Products & Shop Routes
 $router->get('/products', [ProductController::class, 'index']);

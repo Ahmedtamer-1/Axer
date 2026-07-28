@@ -3,9 +3,12 @@
 namespace Axer\Services;
 
 use Axer\Core\Csrf;
+use Axer\Core\Event;
 use Axer\Core\Logger;
 use Axer\Core\Session;
 use Axer\Database\QueryBuilder;
+use Axer\Support\Arr;
+use Axer\Support\SettingsSchema;
 use Axer\Template\Engine;
 use Axer\Template\Filters;
 
@@ -23,6 +26,7 @@ class ThemeService
     protected static bool $activeThemeLoaded = false;
     protected static array $engines = [];
     protected static ?array $storeSettings = null;
+    protected static ?array $navPages = null;
 
     public static function getActiveTheme(): ?array
     {
@@ -79,6 +83,11 @@ class ThemeService
             'version' => $json['version'] ?? '1.0.0',
             'author' => $json['author'] ?? '',
             'author_url' => $json['author_url'] ?? '',
+            // Neither the `themes.screenshot` DB column nor a manifest
+            // `screenshot` key was ever read anywhere — the theme grid
+            // always rendered a hardcoded grey placeholder box regardless
+            // of what a theme shipped.
+            'screenshot' => $json['screenshot'] ?? null,
             'settings' => $json['settings'] ?? [],
             'settings_schema' => $json['settings_schema'] ?? [],
         ];
@@ -114,6 +123,52 @@ class ThemeService
         return $engine->render($template, $data);
     }
 
+    /**
+     * Render a storefront template and wrap it in the active theme's
+     * layout, the way the CMS page route always has.
+     *
+     * Product, cart and account pages used to call render() directly and
+     * return the bare template fragment as the whole HTTP response — no
+     * <html>/<head>, no CSS variables, no header or footer. Only the CMS
+     * page route (AxerStorefrontPage::render()) built the two-step
+     * content-then-layout sequence, so this centralises it for every
+     * storefront entry point.
+     */
+    public static function renderPage(string $template, array $data = []): string
+    {
+        return self::wrapContentInLayout(self::render($template, $data), $data);
+    }
+
+    /**
+     * Wrap already-rendered content (a template's output, or a page's
+     * concatenated builder blocks) in the active theme's layout.
+     *
+     * Pulled out of the CMS page route so every storefront entry point —
+     * products, cart, account, and CMS pages — assembles head/footer
+     * scripts and page metadata the same way.
+     */
+    public static function wrapContentInLayout(string $content, array $data = []): string
+    {
+        $store = self::storeSettings();
+        $pixels = new PixelService();
+
+        $headScripts = Event::filter('template.head_end', $pixels->getClientHeadScripts());
+        $footerScripts = Event::filter('template.footer_end', $pixels->getClientFooterScripts());
+
+        $layoutData = $data;
+        $layoutData['page_title'] = isset($data['page_title']) && $data['page_title'] !== ''
+            ? $data['page_title'] . ' — ' . $store['name']
+            : $store['name'];
+        $layoutData['meta_description'] = $data['meta_description'] ?? ($store['tagline'] ?? '');
+        $layoutData['content'] = $content;
+        $layoutData['head_scripts'] = $headScripts;
+        $layoutData['footer_scripts'] = $footerScripts;
+        $layoutData['flash_success'] = $data['flash_success'] ?? Session::flash('success');
+        $layoutData['flash_error'] = $data['flash_error'] ?? Session::flash('error');
+
+        return self::render('layouts/theme', $layoutData);
+    }
+
     public static function getGlobalContext(?array $theme = null): array
     {
         $theme ??= self::getActiveTheme();
@@ -130,6 +185,11 @@ class ThemeService
             'theme' => $theme['settings'] ?? [],
             'cart_count' => CartService::count(),
             'current_user' => $_SESSION['user'] ?? $_SESSION['admin_user'] ?? null,
+            // The storefront theme used to link straight into /admin for
+            // every visitor, logged in or not. This lets a theme show that
+            // link only to someone who is actually authenticated as staff.
+            'is_admin' => isset($_SESSION['admin_user']),
+            'nav_pages' => self::navPages(),
             'csrf_token' => Csrf::token(),
             'current_year' => date('Y'),
         ];
@@ -175,6 +235,33 @@ class ThemeService
         }
 
         return self::$storeSettings = $defaults;
+    }
+
+    /**
+     * Published pages flagged to appear in the storefront menu.
+     *
+     * pages.show_in_nav and pages.sort_order existed in the schema with no
+     * code ever reading them — every theme's header menu was a hardcoded
+     * list of links instead.
+     */
+    public static function navPages(): array
+    {
+        if (self::$navPages !== null) {
+            return self::$navPages;
+        }
+
+        try {
+            return self::$navPages = QueryBuilder::table('pages')
+                ->where('status', 'published')
+                ->where('show_in_nav', 1)
+                ->orderBy('sort_order', 'ASC')
+                ->orderBy('title', 'ASC')
+                ->get();
+        } catch (\Throwable $e) {
+            Logger::warning('Could not load nav pages: ' . $e->getMessage());
+
+            return self::$navPages = [];
+        }
     }
 
     public static function getAllThemes(): array
@@ -232,7 +319,18 @@ class ThemeService
                 $existing = QueryBuilder::table('themes')->where('slug', $slug)->first();
 
                 if ($existing !== null) {
-                    QueryBuilder::table('themes')->where('slug', $slug)->update(['is_active' => 1]);
+                    // Previously only is_active flipped here, so a theme
+                    // upgraded on disk (new version, new settings_schema
+                    // fields) kept whatever metadata its row had from the
+                    // first time it was ever activated.
+                    QueryBuilder::table('themes')->where('slug', $slug)->update([
+                        'is_active' => 1,
+                        'name' => $themeData['name'],
+                        'description' => $themeData['description'],
+                        'version' => $themeData['version'],
+                        'author' => $themeData['author'],
+                        'settings_schema' => json_encode($themeData['settings_schema'], JSON_UNESCAPED_UNICODE),
+                    ]);
                     return;
                 }
 
@@ -258,12 +356,61 @@ class ThemeService
         }
     }
 
-    public static function saveThemeSettings(string $slug, array $settings): bool
+    /**
+     * @param array $postedSettings Flat dict keyed by the schema's
+     *   dot-path field names (e.g. "colors.primary" => "#111827"), as
+     *   posted by the customizer form.
+     */
+    public static function saveThemeSettings(string $slug, array $postedSettings): bool
     {
+        $manifest = self::scanTheme($slug);
+
+        if ($manifest === null) {
+            return false;
+        }
+
         try {
-            QueryBuilder::table('themes')->where('slug', $slug)->update([
-                'settings' => json_encode($settings, JSON_UNESCAPED_UNICODE),
-            ]);
+            $row = QueryBuilder::table('themes')->where('slug', $slug)->first();
+            $stored = $row && !empty($row['settings']) ? (json_decode($row['settings'], true) ?: []) : [];
+
+            // Start from the manifest defaults, layer the previously
+            // stored settings on top, then the newly posted ones — so a
+            // form that only submits a handful of fields (the customizer
+            // has never rendered every possible schema field at once)
+            // cannot wipe out settings it didn't touch. The old version
+            // replaced the whole `settings` column with only what was
+            // posted, which deleted layout.button_radius and the entire
+            // `store` block on the very first save.
+            $merged = array_replace_recursive($manifest['settings'] ?? [], $stored);
+
+            $fields = SettingsSchema::fields($manifest['settings_schema'] ?? []);
+            $existingFlat = Arr::flattenBySchema($merged, $fields);
+            $sanitized = SettingsSchema::sanitize($manifest['settings_schema'] ?? [], $postedSettings, $existingFlat);
+
+            foreach ($sanitized['values'] as $path => $value) {
+                Arr::set($merged, $path, $value);
+            }
+
+            if ($row) {
+                QueryBuilder::table('themes')->where('slug', $slug)->update([
+                    'settings' => json_encode($merged, JSON_UNESCAPED_UNICODE),
+                ]);
+            } else {
+                // A theme that was never activated has no row yet — an
+                // UPDATE here would match zero rows and silently discard
+                // the save, the same defect PluginManager::savePluginSettings()
+                // had.
+                QueryBuilder::table('themes')->insert([
+                    'slug' => $slug,
+                    'name' => $manifest['name'],
+                    'description' => $manifest['description'],
+                    'version' => $manifest['version'],
+                    'author' => $manifest['author'],
+                    'is_active' => 0,
+                    'settings' => json_encode($merged, JSON_UNESCAPED_UNICODE),
+                    'settings_schema' => json_encode($manifest['settings_schema'], JSON_UNESCAPED_UNICODE),
+                ]);
+            }
 
             // Theme settings are compiled into the templates, so the cache
             // has to go with them — otherwise a saved colour change did not
@@ -286,6 +433,7 @@ class ThemeService
         self::$activeTheme = null;
         self::$activeThemeLoaded = false;
         self::$storeSettings = null;
+        self::$navPages = null;
 
         foreach (self::$engines as $engine) {
             $engine->clearCache();

@@ -1,0 +1,6 @@
+<div class="section container" style="max-width: 720px; text-align: {{ align | default('center') }};">
+    {% if title %}
+        <h2 style="font-size: 2rem; margin-bottom: 1.25rem;">{{ title }}</h2>
+    {% endif %}
+    <p style="font-size: 1.05rem; line-height: 1.8; color: var(--text-muted);">{{ content }}</p>
+</div>

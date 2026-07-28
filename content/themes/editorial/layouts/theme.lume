@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="{{ meta_description | default('') }}">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{{ page_title | default(store.name) }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Lora:wght@500;600&family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: {{ theme.colors.primary | default('#b5623f') }};
+            --secondary: {{ theme.colors.secondary | default('#3a2e28') }};
+            --bg-color: {{ theme.colors.background | default('#faf5ec') }};
+            --text-color: {{ theme.colors.text | default('#2b241f') }};
+            --text-muted: #7c6f63;
+            --border-color: #e6dccb;
+            --container-max: {{ theme.layout.container_width | default('1240px') }};
+            --radius: {{ theme.layout.button_radius | default('2px') }};
+            --heading-font: "{{ theme.typography.heading_font | default('Playfair Display') }}";
+            --body-font: "{{ theme.typography.body_font | default('Inter') }}";
+        }
+    </style>
+    <link rel="stylesheet" href="{{ 'theme.css' | asset_url }}">
+
+    {{ head_scripts | raw }}
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="brand-logo">{{ store.name | default('Axer') }}<span class="accent">.</span></a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop</a></li>
+                <li><a href="/products">All Products</a></li>
+                {% for nav_page in nav_pages %}
+                    <li><a href="/{{ nav_page.slug }}">{{ nav_page.title }}</a></li>
+                {% endfor %}
+            </ul>
+
+            <div class="header-actions">
+                <a href="/cart" class="cart-btn" title="View cart" aria-label="View cart">
+                    <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
+                    {% if cart_count %}
+                        <span class="cart-count" data-cart-count>{{ cart_count }}</span>
+                    {% else %}
+                        <span class="cart-count" data-cart-count hidden>0</span>
+                    {% endif %}
+                </a>
+                {% if current_user %}
+                    <a href="/account" class="account-link" title="My account" aria-label="My account">
+                        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                    </a>
+                {% else %}
+                    <a href="/account/login" class="account-link" title="Sign in" aria-label="Sign in">
+                        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                    </a>
+                {% endif %}
+                {% if is_admin %}
+                    <a href="/admin/dashboard" class="admin-link">Admin</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="site-main" id="main-content">
+        {% if flash_success %}
+            <div class="container" style="margin-top: 1.5rem;">
+                <div class="alert alert-success">{{ flash_success }}</div>
+            </div>
+        {% endif %}
+        {% if flash_error %}
+            <div class="container" style="margin-top: 1.5rem;">
+                <div class="alert alert-error">{{ flash_error }}</div>
+            </div>
+        {% endif %}
+        {{ content | raw }}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div style="font-family: var(--heading-font); font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem;">
+                    {{ store.name | default('Axer Store') }}
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6; max-width: 320px;">
+                    {{ store.tagline | default('Considered goods, thoughtfully made.') }}
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="/shop">All Collections</a></li>
+                    <li><a href="/products">Featured Items</a></li>
+                    <li><a href="/cart">My Cart</a></li>
+                    {% for nav_page in nav_pages %}
+                        <li><a href="/{{ nav_page.slug }}">{{ nav_page.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if is_admin %}
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="/admin/dashboard">Admin Dashboard</a></li>
+                        <li><a href="/admin/products">Product Spreadsheet</a></li>
+                        <li><a href="/admin/plugins">Plugin Marketplace</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="footer-col">
+                <h4>Account</h4>
+                <ul>
+                    {% if current_user %}
+                        <li><a href="/account">My Account</a></li>
+                        <li><a href="/account/logout">Sign Out</a></li>
+                    {% else %}
+                        <li><a href="/account/login">Sign In</a></li>
+                        <li><a href="/account/register">Create Account</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/admin/assets/js/icons.js" defer></script>
+    {{ footer_scripts | raw }}
+</body>
+</html>

@@ -28,7 +28,7 @@
     <div>
         <h1 style="font-size: 2.5rem; margin: 0 0 1rem 0;">{{ product.name }}</h1>
         <div style="font-size: 1.5rem; font-weight: 600; color: #10b981; margin-bottom: 2rem;">
-            {{ settings.currency_symbol }}<span id="product-price">{{ product.formatted_price }}</span>
+            {{ store.currency_symbol }}<span id="product-price">{{ product.formatted_price }}</span>
         </div>
 
         <div style="font-size: 1.125rem; line-height: 1.7; color: #475569; margin-bottom: 2rem;">

@@ -82,27 +82,40 @@
                 <th>Slug</th>
                 <th>Status</th>
                 <th>Template</th>
+                <th>Nav</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($pages)): ?>
                 <tr>
-                    <td colspan="5" style="text-align: center; color: var(--text-muted);">No pages found. Click "Add Page" to create one.</td>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);">No pages found. Click "Add Page" to create one.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($pages as $page): ?>
                     <tr>
-                        <td style="font-weight: 500;"><?= htmlspecialchars($page['title']) ?></td>
-                        <td><code>/<?= htmlspecialchars($page['slug']) ?></code></td>
+                        <td style="font-weight: 500;"><?= htmlspecialchars($page['title'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><code>/<?= htmlspecialchars($page['slug'], ENT_QUOTES, 'UTF-8') ?></code></td>
                         <td>
-                            <span class="badge badge-<?= $page['status'] ?>">
-                                <?= ucfirst(htmlspecialchars($page['status'])) ?>
+                            <span class="badge badge-<?= htmlspecialchars($page['status'], ENT_QUOTES, 'UTF-8') ?>">
+                                <?= ucfirst(htmlspecialchars($page['status'], ENT_QUOTES, 'UTF-8')) ?>
                             </span>
                         </td>
-                        <td><?= htmlspecialchars($page['template']) ?></td>
+                        <td><?= htmlspecialchars($page['template'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td>
+                            <?php if (!empty($page['show_in_nav'])): ?>
+                                <span class="badge badge-published"><i data-lucide="check" style="width: 12px; height: 12px;"></i></span>
+                            <?php else: ?>
+                                <span style="color: var(--text-muted);">—</span>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <div class="actions-cell">
+                                <?php if ($page['status'] !== 'published'): ?>
+                                    <a href="/<?= htmlspecialchars($page['slug'], ENT_QUOTES, 'UTF-8') ?>?preview=1" target="_blank" rel="noopener" class="btn-icon" title="Preview Draft">
+                                        <i data-lucide="eye"></i>
+                                    </a>
+                                <?php endif; ?>
                                 <a href="/admin/pages/builder/<?= $page['id'] ?>" class="btn-icon" title="Visual Page Builder">
                                     <i data-lucide="layout"></i>
                                 </a>
@@ -110,6 +123,7 @@
                                     <i data-lucide="edit-2"></i>
                                 </a>
                                 <form action="/admin/pages/delete/<?= $page['id'] ?>" method="POST" onsubmit="return confirm('Are you sure you want to delete this page?');" style="display:inline;">
+                                    <input type="hidden" name="_csrf" value="<?= htmlspecialchars(\Axer\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <button type="submit" class="btn-icon btn-icon-danger" title="Delete Page">
                                         <i data-lucide="trash-2"></i>

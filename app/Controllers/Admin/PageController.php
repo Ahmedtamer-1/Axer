@@ -45,6 +45,10 @@ class PageController extends AdminController
             $template = $request->string('template', 'page');
             $status = $request->string('status', 'draft');
             $status = in_array($status, self::STATUSES, true) ? $status : 'draft';
+            $showInNav = $request->post('show_in_nav') ? 1 : 0;
+            $sortOrder = (int) $request->post('sort_order', 0);
+            $seoTitle = $request->string('seo_title');
+            $seoDescription = (string) $request->post('seo_description', '');
 
             if ($title === '') {
                 $error = 'Page title is required.';
@@ -63,6 +67,10 @@ class PageController extends AdminController
                         'template' => $template,
                         'status' => $status,
                         'builder_data' => json_encode([]),
+                        'show_in_nav' => $showInNav,
+                        'sort_order' => $sortOrder,
+                        'seo_title' => $seoTitle !== '' ? $seoTitle : null,
+                        'seo_description' => $seoDescription !== '' ? $seoDescription : null,
                     ]);
 
                     Session::flash('success', 'Page created.');
@@ -102,6 +110,10 @@ class PageController extends AdminController
             $template = $request->string('template', 'page');
             $status = $request->string('status', 'draft');
             $status = in_array($status, self::STATUSES, true) ? $status : 'draft';
+            $showInNav = $request->post('show_in_nav') ? 1 : 0;
+            $sortOrder = (int) $request->post('sort_order', 0);
+            $seoTitle = $request->string('seo_title');
+            $seoDescription = (string) $request->post('seo_description', '');
 
             if ($title === '') {
                 $error = 'Page title is required.';
@@ -113,6 +125,10 @@ class PageController extends AdminController
                         'content' => $content,
                         'template' => $template,
                         'status' => $status,
+                        'show_in_nav' => $showInNav,
+                        'sort_order' => $sortOrder,
+                        'seo_title' => $seoTitle !== '' ? $seoTitle : null,
+                        'seo_description' => $seoDescription !== '' ? $seoDescription : null,
                     ]);
 
                     Session::flash('success', 'Page updated.');

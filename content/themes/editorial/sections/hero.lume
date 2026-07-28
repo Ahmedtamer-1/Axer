@@ -1,0 +1,13 @@
+<div class="editorial-hero container">
+    <div>
+        <span class="eyebrow">New Arrivals</span>
+        <h1>{{ title | default('Welcome to the collection') }}</h1>
+        <p>{{ subtitle | default('Considered goods, thoughtfully made.') }}</p>
+        <a href="{{ button_url | default('/shop') }}" class="btn btn-primary">{{ button_text | default('Shop Now') }}</a>
+    </div>
+    <div class="hero-media">
+        {% if image_url %}
+            <img src="{{ image_url }}" alt="{{ title | default('') }}">
+        {% endif %}
+    </div>
+</div>

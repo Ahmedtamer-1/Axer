@@ -1,0 +1,27 @@
+<div class="section container" style="max-width: 720px;">
+    {% if title %}
+        <div class="section-heading">
+            <span class="eyebrow">Questions</span>
+            <h2>{{ title }}</h2>
+        </div>
+    {% endif %}
+
+    {% if q1 %}
+        <div style="border-bottom: 1px solid var(--border-color); padding: 1.5rem 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ q1 }}</h3>
+            <p style="color: var(--text-muted); line-height: 1.7;">{{ a1 }}</p>
+        </div>
+    {% endif %}
+    {% if q2 %}
+        <div style="border-bottom: 1px solid var(--border-color); padding: 1.5rem 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ q2 }}</h3>
+            <p style="color: var(--text-muted); line-height: 1.7;">{{ a2 }}</p>
+        </div>
+    {% endif %}
+    {% if q3 %}
+        <div style="border-bottom: 1px solid var(--border-color); padding: 1.5rem 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ q3 }}</h3>
+            <p style="color: var(--text-muted); line-height: 1.7;">{{ a3 }}</p>
+        </div>
+    {% endif %}
+</div>

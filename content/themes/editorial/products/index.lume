@@ -1,0 +1,30 @@
+<div class="container" style="margin: 3rem 0 5rem;">
+    <div class="section-heading">
+        <span class="eyebrow">Shop</span>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">The Collection</h1>
+        <p>Explore all available products in our catalog.</p>
+    </div>
+
+    <div class="product-grid">
+        {% for product in products %}
+            <a href="/products/{{ product.slug }}" class="product-card">
+                <div class="thumb">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                </div>
+                <h3>{{ product.name }}</h3>
+                <p class="desc">{{ product.description }}</p>
+                <span class="price">{{ store.currency_symbol }}{{ product.price }}</span>
+            </a>
+        {% endfor %}
+
+        {% if products_empty %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <h3 style="margin-bottom: 0.5rem;">No products yet</h3>
+                <p style="margin-bottom: 1.5rem;">There are currently no active products in the shop.</p>
+                {% if is_admin %}
+                    <a href="/admin/products" class="btn btn-secondary">Add Products in Admin</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
