@@ -1,35 +1,51 @@
 {
     "name": "Default Minimal Theme",
     "description": "Clean, light theme designed for elegance and luxury fashion.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "Axer Team",
     "author_url": "https://Axer.org",
     "settings": {
-        "primary_color": "#6366f1",
-        "secondary_color": "#1e293b",
-        "text_color": "#0f172a",
-        "font_family": "Outfit",
-        "button_border_radius": "4px"
+        "colors": {
+            "primary": "#6366f1",
+            "secondary": "#1e293b",
+            "background": "#ffffff",
+            "text": "#0f172a"
+        },
+        "typography": {
+            "heading_font": "Outfit",
+            "body_font": "Outfit"
+        },
+        "layout": {
+            "container_width": "1200px",
+            "button_radius": "0.75rem"
+        },
+        "store": {
+            "name": "Axer Store",
+            "tagline": "Next-generation commerce, built for speed."
+        }
     },
     "settings_schema": [
         {
             "name": "Colors",
             "settings": [
-                { "name": "primary_color", "label": "Brand Color", "type": "color" },
-                { "name": "secondary_color", "label": "Accent Color", "type": "color" },
-                { "name": "text_color", "label": "Main Text Color", "type": "color" }
+                { "name": "colors.primary", "label": "Brand Color", "type": "color" },
+                { "name": "colors.secondary", "label": "Accent Color", "type": "color" },
+                { "name": "colors.background", "label": "Page Background", "type": "color" },
+                { "name": "colors.text", "label": "Main Text Color", "type": "color" }
             ]
         },
         {
             "name": "Typography",
             "settings": [
-                { "name": "font_family", "label": "Body Font Family", "type": "select", "options": ["Outfit", "Inter", "Roboto", "Georgia"] }
+                { "name": "typography.heading_font", "label": "Heading Font", "type": "select", "options": ["Outfit", "Inter", "Roboto", "Georgia"] },
+                { "name": "typography.body_font", "label": "Body Font", "type": "select", "options": ["Outfit", "Inter", "Roboto", "Georgia"] }
             ]
         },
         {
             "name": "Layout & Styling",
             "settings": [
-                { "name": "button_border_radius", "label": "Button Roundness", "type": "select", "options": ["0px", "4px", "8px", "999px"] }
+                { "name": "layout.container_width", "label": "Container Width", "type": "text" },
+                { "name": "layout.button_radius", "label": "Button Roundness", "type": "select", "options": ["0px", "0.25rem", "0.75rem", "999px"] }
             ]
         }
     ]

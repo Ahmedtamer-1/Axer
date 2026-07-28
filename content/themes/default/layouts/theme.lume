@@ -8,8 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --primary: {{ theme.colors.primary | default('#6366f1') }};
@@ -20,7 +18,9 @@
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --container-max: {{ theme.layout.container_width | default('1200px') }};
-            --radius: 0.75rem;
+            --radius: {{ theme.layout.button_radius | default('0.75rem') }};
+            --heading-font: {{ theme.typography.heading_font | default('Outfit') }};
+            --body-font: {{ theme.typography.body_font | default('Outfit') }};
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,14 +31,37 @@
         }
 
         body {
-            font-family: 'Outfit', 'Inter', sans-serif;
+            font-family: var(--body-font), 'Outfit', 'Inter', system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
+
+        h1, h2, h3, h4 {
+            font-family: var(--heading-font), 'Outfit', system-ui, sans-serif;
+        }
+
+        /* Icons come from the self-hosted sprite; reserve their box so the
+           header does not reflow once the sprite resolves. */
+        [data-lucide] { display: inline-block; width: 1.125em; height: 1.125em; }
+        .axer-icon { width: 1.125em; height: 1.125em; flex-shrink: 0; vertical-align: -0.15em; }
+
+        :where(a, button, input, [tabindex]):focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        .skip-link {
+            position: absolute; left: -9999px; top: 0; z-index: 2000;
+            padding: 0.75rem 1.25rem; background: var(--primary); color: #fff;
+            font-weight: 600; text-decoration: none; border-radius: 0 0 var(--radius) 0;
+        }
+        .skip-link:focus { left: 0; }
 
         /* Glassmorphism Header */
         .site-header {
@@ -244,14 +267,58 @@
             font-size: 0.875rem;
         }
 
+        /* Cart badge only appears when there is something in the cart. */
+        .cart-count[hidden] { display: none; }
+
+        /* Toasts for background add-to-cart. */
+        .toast-region {
+            position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 2000;
+            display: flex; flex-direction: column; gap: 0.625rem;
+            max-width: min(22rem, calc(100vw - 2.5rem)); pointer-events: none;
+        }
+        .toast {
+            padding: 0.875rem 1.125rem; border-radius: var(--radius);
+            background: #0f172a; color: #f8fafc; font-size: 0.9rem; font-weight: 500;
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3);
+            border-left: 3px solid var(--primary);
+            opacity: 0; transform: translateY(0.5rem);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: auto;
+        }
+        .toast.is-visible { opacity: 1; transform: translateY(0); }
+        .toast-success { border-left-color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+
+        @media (max-width: 640px) {
+            .toast-region { left: 1rem; right: 1rem; bottom: 1rem; max-width: none; }
+        }
+
         @media (max-width: 768px) {
             .footer-container { grid-template-columns: 1fr; gap: 2rem; }
-            .nav-links { display: none; }
+            /* Wrap the nav rather than removing it: hiding the links left
+               no way to reach the shop from a phone. */
+            .header-container { flex-wrap: wrap; row-gap: 0.75rem; }
+            .nav-links {
+                order: 3; width: 100%; gap: 1.25rem;
+                justify-content: center; font-size: 0.9rem;
+                border-top: 1px solid var(--border-color); padding-top: 0.75rem;
+            }
+            .admin-link { display: none; }
+            .site-main { padding: 1.5rem 1rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
     {{ head_scripts | raw }}
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
     <!-- Navigation Header -->
     <header class="site-header">
         <div class="header-container">
@@ -267,12 +334,12 @@
             </ul>
 
             <div class="header-actions">
-                <a href="/cart" class="cart-btn" title="View Cart">
+                <a href="/cart" class="cart-btn" title="View cart" aria-label="View cart">
                     <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
                     {% if cart_count %}
-                        <span class="cart-count">{{ cart_count }}</span>
+                        <span class="cart-count" data-cart-count>{{ cart_count }}</span>
                     {% else %}
-                        <span class="cart-count">0</span>
+                        <span class="cart-count" data-cart-count hidden>0</span>
                     {% endif %}
                 </a>
                 <a href="/admin/dashboard" class="admin-link">Admin Portal</a>
@@ -281,7 +348,7 @@
     </header>
 
     <!-- Main Content Body -->
-    <main class="site-main">
+    <main class="site-main" id="main-content">
         {{ content | raw }}
     </main>
 
@@ -330,9 +397,10 @@
         </div>
     </footer>
 
-    <script>
-        lucide.createIcons();
-    </script>
+    <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
+
+    <script src="/admin/assets/js/icons.js" defer></script>
+    <script src="/assets/js/storefront.js" defer></script>
     {{ footer_scripts | raw }}
 </body>
 </html>
