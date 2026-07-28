@@ -5,129 +5,123 @@ namespace Axer\Controllers\Storefront;
 use Axer\Core\Controller;
 use Axer\Core\Request;
 use Axer\Core\Response;
-use Axer\Database\QueryBuilder;
+use Axer\Core\Session;
+use Axer\Services\CartService;
 use Axer\Services\ThemeService;
 
 class CartController extends Controller
 {
     public function index(Request $request): Response
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        Session::start();
 
-        $cart = $_SESSION['cart'] ?? [];
-        $items = [];
-        $total = 0;
+        // CartService batches every lookup. This method previously issued
+        // three queries per line item (product, image, variant), so a
+        // ten-item cart cost thirty-one round trips.
+        $cart = CartService::resolve();
 
-        foreach ($cart as $key => $item) {
-            $product = QueryBuilder::table('products')->where('id', $item['product_id'])->first();
-            if ($product) {
-                $image = QueryBuilder::table('product_images')
-                    ->where('product_id', $product['id'])
-                    ->first();
-
-                $variant = null;
-                if (!empty($item['variant_id'])) {
-                    $variant = QueryBuilder::table('product_variants')->where('id', $item['variant_id'])->first();
-                }
-
-                $price = $variant && $variant['price_override'] ? (float)$variant['price_override'] : (float)$product['price'];
-                $itemTotal = $price * $item['quantity'];
-                $total += $itemTotal;
-
-                $items[] = [
-                    'key' => $key,
-                    'product_id' => $product['id'],
-                    'name' => $product['name'],
-                    'slug' => $product['slug'],
-                    'variant_name' => $variant ? ($variant['display_name'] ?? $variant['color_name'] ?? $variant['size']) : null,
-                    'price' => $price,
-                    'quantity' => $item['quantity'],
-                    'total' => $itemTotal,
-                    'image_url' => $image ? $image['url'] : 'https://via.placeholder.com/150'
-                ];
-            }
-        }
+        $subtotal = $cart['subtotal'];
+        $shipping = $subtotal > 0 && $subtotal < 1000 ? 60.0 : 0.0;
+        $total = $subtotal + $shipping;
 
         $html = ThemeService::render('cart', [
             'page_title' => 'Shopping Cart',
-            'cart_items' => $items,
+            'cart_items' => $cart['items'],
+            'cart_count' => $cart['count'],
+            'cart_subtotal' => number_format($subtotal, 2),
+            'cart_shipping' => $shipping > 0 ? number_format($shipping, 2) : 'Free',
             'cart_total' => number_format($total, 2),
             'raw_total' => $total,
-            'is_empty' => empty($items)
+            'free_shipping_remaining' => $subtotal > 0 && $subtotal < 1000
+                ? number_format(1000 - $subtotal, 2)
+                : null,
+            'is_empty' => $cart['items'] === [],
         ]);
 
-        return new Response($html);
+        // A cart is per-visitor and changes constantly — never let a proxy
+        // or the browser serve a stale copy of somebody's basket.
+        return (new Response($html))->noCache();
     }
 
     public function add(Request $request): Response
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        Session::start();
+
+        $productId = (int) $request->input('product_id', 0);
+        $variantId = $request->input('variant_id');
+        $quantity = (int) $request->input('quantity', 1);
+
+        if ($productId <= 0) {
+            return $this->respond($request, false, 'Please choose a product first.', 400);
         }
 
-        $productId = (int)($request->post('product_id') ?? $request->json('product_id'));
-        $variantId = $request->post('variant_id') ?? $request->json('variant_id');
-        $quantity = max(1, (int)($request->post('quantity') ?? $request->json('quantity') ?? 1));
+        // Existence, ownership and stock are all validated in the service.
+        // None of it was checked before: any integer could be added to the
+        // cart, including ids of deleted or unpublished products.
+        $result = CartService::add($productId, $variantId, $quantity);
 
-        if (!$productId) {
-            return new Response('Invalid product', 400);
-        }
-
-        $key = $productId . '_' . ($variantId ?? 0);
-
-        if (!isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = [];
-        }
-
-        if (isset($_SESSION['cart'][$key])) {
-            $_SESSION['cart'][$key]['quantity'] += $quantity;
-        } else {
-            $_SESSION['cart'][$key] = [
-                'product_id' => $productId,
-                'variant_id' => $variantId,
-                'quantity' => $quantity
-            ];
-        }
-
-        if ($request->header('Accept') === 'application/json' || $request->json('product_id')) {
-            $cartCount = array_sum(array_column($_SESSION['cart'], 'quantity'));
-            return Response::json(['success' => true, 'cart_count' => $cartCount]);
-        }
-
-        return $this->redirect('/cart');
+        return $this->respond(
+            $request,
+            $result['ok'],
+            $result['message'],
+            $result['ok'] ? 200 : 422,
+            $result['count']
+        );
     }
 
     public function update(Request $request): Response
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        Session::start();
+
+        $key = (string) $request->input('key', '');
+        $quantity = (int) $request->input('quantity', 0);
+
+        if ($key !== '') {
+            CartService::updateQuantity($key, $quantity);
         }
 
-        $key = $request->post('key');
-        $quantity = (int)$request->post('quantity');
-
-        if ($key && isset($_SESSION['cart'][$key])) {
-            if ($quantity <= 0) {
-                unset($_SESSION['cart'][$key]);
-            } else {
-                $_SESSION['cart'][$key]['quantity'] = $quantity;
-            }
-        }
-
-        return $this->redirect('/cart');
+        return $this->respond($request, true, 'Cart updated.', 200, CartService::count());
     }
 
     public function remove(Request $request): Response
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        Session::start();
+
+        $key = (string) $request->input('key', '');
+
+        if ($key !== '') {
+            CartService::remove($key);
         }
 
-        $key = $request->post('key');
-        if ($key && isset($_SESSION['cart'][$key])) {
-            unset($_SESSION['cart'][$key]);
+        return $this->respond($request, true, 'Item removed.', 200, CartService::count());
+    }
+
+    /**
+     * Answer JSON to background requests and redirect real form posts.
+     *
+     * The old detection was `$request->header('Accept') === 'application/json'
+     * || $request->json('product_id')`, an exact string match that browsers
+     * never send, so AJAX callers got a 302 to /cart instead of a payload.
+     */
+    protected function respond(
+        Request $request,
+        bool $ok,
+        string $message,
+        int $status = 200,
+        ?int $count = null
+    ): Response {
+        $count ??= CartService::count();
+
+        if ($request->expectsJson()) {
+            return Response::json([
+                'success' => $ok,
+                'message' => $message,
+                'cart_count' => $count,
+            ], $status);
+        }
+
+        if (!$ok) {
+            Session::flash('error', $message);
         }
 
         return $this->redirect('/cart');

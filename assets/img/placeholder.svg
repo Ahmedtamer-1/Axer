@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img" aria-label="No image available">
+  <!--
+    Local product-image placeholder.
+
+    The storefront previously fell back to via.placeholder.com (a service
+    that has shut down, so the images were simply broken) and to a
+    hardcoded Unsplash photo, which leaked a request to a third party on
+    every product without an image.
+  -->
+  <rect width="600" height="600" fill="#f1f5f9"/>
+  <g fill="none" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="180" y="192" width="240" height="216" rx="20"/>
+    <circle cx="248" cy="262" r="24"/>
+    <path d="M420 348 348 276a26 26 0 0 0-37 0L204 384"/>
+  </g>
+  <text x="300" y="452" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="26" fill="#94a3b8" text-anchor="middle">No image</text>
+</svg>
