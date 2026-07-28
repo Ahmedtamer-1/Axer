@@ -7,6 +7,8 @@ use Axer\Core\Event;
 use Axer\Core\Logger;
 use Axer\Core\Session;
 use Axer\Database\QueryBuilder;
+use Axer\Support\Arr;
+use Axer\Support\SettingsSchema;
 use Axer\Template\Engine;
 use Axer\Template\Filters;
 
@@ -81,6 +83,11 @@ class ThemeService
             'version' => $json['version'] ?? '1.0.0',
             'author' => $json['author'] ?? '',
             'author_url' => $json['author_url'] ?? '',
+            // Neither the `themes.screenshot` DB column nor a manifest
+            // `screenshot` key was ever read anywhere — the theme grid
+            // always rendered a hardcoded grey placeholder box regardless
+            // of what a theme shipped.
+            'screenshot' => $json['screenshot'] ?? null,
             'settings' => $json['settings'] ?? [],
             'settings_schema' => $json['settings_schema'] ?? [],
         ];
@@ -312,7 +319,18 @@ class ThemeService
                 $existing = QueryBuilder::table('themes')->where('slug', $slug)->first();
 
                 if ($existing !== null) {
-                    QueryBuilder::table('themes')->where('slug', $slug)->update(['is_active' => 1]);
+                    // Previously only is_active flipped here, so a theme
+                    // upgraded on disk (new version, new settings_schema
+                    // fields) kept whatever metadata its row had from the
+                    // first time it was ever activated.
+                    QueryBuilder::table('themes')->where('slug', $slug)->update([
+                        'is_active' => 1,
+                        'name' => $themeData['name'],
+                        'description' => $themeData['description'],
+                        'version' => $themeData['version'],
+                        'author' => $themeData['author'],
+                        'settings_schema' => json_encode($themeData['settings_schema'], JSON_UNESCAPED_UNICODE),
+                    ]);
                     return;
                 }
 
@@ -338,12 +356,61 @@ class ThemeService
         }
     }
 
-    public static function saveThemeSettings(string $slug, array $settings): bool
+    /**
+     * @param array $postedSettings Flat dict keyed by the schema's
+     *   dot-path field names (e.g. "colors.primary" => "#111827"), as
+     *   posted by the customizer form.
+     */
+    public static function saveThemeSettings(string $slug, array $postedSettings): bool
     {
+        $manifest = self::scanTheme($slug);
+
+        if ($manifest === null) {
+            return false;
+        }
+
         try {
-            QueryBuilder::table('themes')->where('slug', $slug)->update([
-                'settings' => json_encode($settings, JSON_UNESCAPED_UNICODE),
-            ]);
+            $row = QueryBuilder::table('themes')->where('slug', $slug)->first();
+            $stored = $row && !empty($row['settings']) ? (json_decode($row['settings'], true) ?: []) : [];
+
+            // Start from the manifest defaults, layer the previously
+            // stored settings on top, then the newly posted ones — so a
+            // form that only submits a handful of fields (the customizer
+            // has never rendered every possible schema field at once)
+            // cannot wipe out settings it didn't touch. The old version
+            // replaced the whole `settings` column with only what was
+            // posted, which deleted layout.button_radius and the entire
+            // `store` block on the very first save.
+            $merged = array_replace_recursive($manifest['settings'] ?? [], $stored);
+
+            $fields = SettingsSchema::fields($manifest['settings_schema'] ?? []);
+            $existingFlat = Arr::flattenBySchema($merged, $fields);
+            $sanitized = SettingsSchema::sanitize($manifest['settings_schema'] ?? [], $postedSettings, $existingFlat);
+
+            foreach ($sanitized['values'] as $path => $value) {
+                Arr::set($merged, $path, $value);
+            }
+
+            if ($row) {
+                QueryBuilder::table('themes')->where('slug', $slug)->update([
+                    'settings' => json_encode($merged, JSON_UNESCAPED_UNICODE),
+                ]);
+            } else {
+                // A theme that was never activated has no row yet — an
+                // UPDATE here would match zero rows and silently discard
+                // the save, the same defect PluginManager::savePluginSettings()
+                // had.
+                QueryBuilder::table('themes')->insert([
+                    'slug' => $slug,
+                    'name' => $manifest['name'],
+                    'description' => $manifest['description'],
+                    'version' => $manifest['version'],
+                    'author' => $manifest['author'],
+                    'is_active' => 0,
+                    'settings' => json_encode($merged, JSON_UNESCAPED_UNICODE),
+                    'settings_schema' => json_encode($manifest['settings_schema'], JSON_UNESCAPED_UNICODE),
+                ]);
+            }
 
             // Theme settings are compiled into the templates, so the cache
             // has to go with them — otherwise a saved colour change did not

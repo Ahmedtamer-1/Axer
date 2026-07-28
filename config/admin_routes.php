@@ -83,6 +83,7 @@ $router->group([
 
         // Themes
         $router->get('/themes', [ThemeController::class, 'index']);
+        $router->get('/themes/screenshot/{slug}', [ThemeController::class, 'screenshot']);
         $router->post('/themes/activate/{slug}', [ThemeController::class, 'activate']);
         $router->get('/themes/customize/{slug}', [ThemeController::class, 'customizer']);
         $router->post('/themes/customize/{slug}', [ThemeController::class, 'customizer']);
