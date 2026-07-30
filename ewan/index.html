@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عيوان .. الموقع الرسمي للقرف</title>
+<style>
+  :root{
+    --bg:#08070d; --card:#14121f; --line:#2a2540;
+    --ink:#f4f1ff; --dim:#a79fc9;
+    --hot:#ff2e6a; --acid:#c6ff2e; --cy:#2ee6ff; --or:#ff9f1c;
+    --accent:var(--hot);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    font-family:"Cairo","Segoe UI","Tahoma","Noto Sans Arabic",sans-serif;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:""; position:fixed; inset:-40%; z-index:-2; opacity:.5;
+    background:
+      radial-gradient(closest-side at 20% 20%, var(--accent), transparent 70%),
+      radial-gradient(closest-side at 80% 30%, var(--cy), transparent 70%),
+      radial-gradient(closest-side at 50% 85%, var(--acid), transparent 70%);
+    filter:blur(90px); animation:drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift{to{transform:translate(-6%,4%) scale(1.15) rotate(8deg)}}
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.06;
+    background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px);
+  }
+
+  .wrap{max-width:900px;margin:0 auto;padding:18px 16px 120px}
+
+  header{text-align:center;padding:26px 0 10px}
+  .logo{
+    font-size:clamp(38px,11vw,86px); font-weight:900; line-height:.95; letter-spacing:-2px;
+    background:linear-gradient(100deg,var(--accent),var(--cy),var(--acid));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 42px rgba(255,46,106,.25);
+    animation:shake .5s ease-in-out infinite alternate;
+  }
+  @keyframes shake{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+  .sub{color:var(--dim);font-size:15px;margin-top:6px}
+
+  .headline{
+    margin:18px 0; padding:20px; border-radius:20px; border:2px dashed var(--accent);
+    background:rgba(20,18,31,.72); backdrop-filter:blur(8px);
+    font-size:clamp(20px,5vw,32px); font-weight:800; text-align:center; line-height:1.6;
+  }
+  .headline small{display:block;color:var(--dim);font-size:13px;font-weight:600;margin-bottom:8px;letter-spacing:2px}
+
+  .card{
+    background:rgba(20,18,31,.82); border:1px solid var(--line); border-radius:22px;
+    padding:22px; margin:16px 0; backdrop-filter:blur(10px);
+    box-shadow:0 18px 50px rgba(0,0,0,.45);
+    animation:pop .35s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}}
+  .card h2{margin:0 0 4px;font-size:26px}
+  .card .tag{display:inline-block;background:var(--accent);color:#0a0812;font-weight:900;
+    font-size:12px;padding:4px 12px;border-radius:999px;margin-bottom:10px;letter-spacing:1px}
+  .hint{color:var(--dim);font-size:14px;margin:0 0 16px}
+
+  button{
+    font-family:inherit; font-weight:800; font-size:16px; cursor:pointer;
+    border:none; border-radius:14px; padding:13px 22px; color:#0a0812;
+    background:linear-gradient(120deg,var(--accent),var(--or));
+    transition:transform .12s, filter .12s; box-shadow:0 6px 0 rgba(0,0,0,.35);
+  }
+  button:hover{filter:brightness(1.12)}
+  button:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+  button.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+
+  .big{font-size:clamp(22px,5.4vw,34px);font-weight:900;line-height:1.7;margin:14px 0}
+  .mono{font-variant-numeric:tabular-nums}
+
+  .bar{height:22px;border-radius:999px;background:#241f38;overflow:hidden;margin:12px 0}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acid),var(--hot));transition:width .6s cubic-bezier(.2,1,.3,1)}
+
+  .grid{display:grid;gap:10px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+
+  .hole{
+    aspect-ratio:1; border-radius:18px; background:#1d1930; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:clamp(28px,9vw,46px);
+    cursor:pointer; user-select:none; transition:transform .1s, background .15s;
+  }
+  .hole.on{background:#2c2247;transform:scale(1.04)}
+  .hole:active{transform:scale(.93)}
+
+  .opt{
+    display:block;width:100%;text-align:right;margin:8px 0;padding:14px 16px;border-radius:14px;
+    background:#1d1930;border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:16px;
+    cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .opt:hover{background:#272040;border-color:var(--accent)}
+  .opt.picked{background:var(--accent);color:#0a0812;border-color:var(--accent)}
+
+  .cert{
+    border:6px double var(--acid); border-radius:12px; padding:26px 18px; text-align:center;
+    background:repeating-linear-gradient(45deg,#151125 0 12px,#191430 12px 24px);
+  }
+  .cert .seal{font-size:52px}
+  .cert h3{font-size:clamp(20px,5vw,30px);margin:8px 0}
+
+  .id{display:flex;gap:14px;align-items:center;background:#1a1530;border:1px solid var(--line);
+    border-radius:16px;padding:14px;margin-bottom:12px}
+  .id .pic{width:74px;height:88px;border-radius:10px;background:#2a2246;display:flex;
+    align-items:center;justify-content:center;font-size:42px;flex:0 0 auto}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  td{padding:9px 6px;border-bottom:1px dashed var(--line)}
+  td:first-child{color:var(--dim);width:38%}
+
+  .ticker{
+    position:fixed; bottom:0; right:0; left:0; background:#000; border-top:2px solid var(--accent);
+    padding:9px 0; font-weight:800; font-size:15px; white-space:nowrap; overflow:hidden; z-index:9;
+  }
+  .ticker span{display:inline-block;padding-right:100%;animation:run 26s linear infinite}
+  @keyframes run{to{transform:translateX(100%)}}
+
+  .fab{
+    position:fixed; bottom:56px; left:16px; z-index:10;
+    border-radius:999px; padding:15px 24px; font-size:17px;
+  }
+  .toast{
+    position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:20;
+    background:var(--accent);color:#0a0812;font-weight:900;padding:12px 20px;border-radius:14px;
+    opacity:0;transition:.25s;pointer-events:none
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(6px)}
+  .foot{text-align:center;color:var(--dim);font-size:12px;margin-top:26px;line-height:2}
+  .shk{animation:hit .35s}
+  @keyframes hit{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+  <header>
+    <div class="logo" id="logo">عيوان</div>
+    <div class="sub" id="slogan"></div>
+  </header>
+
+  <div class="headline" id="headline"></div>
+  <div id="stage"></div>
+
+  <div class="foot">
+    الموقع ده اتعمل مخصوص علشان عيوان .. مفيش حد تاني ليه علاقة<br>
+    كل ريفريش = قرف جديد • نسخة <span id="ver"></span>
+  </div>
+</div>
+
+<button class="fab" onclick="location.reload()">🎲 هات قرف تاني</button>
+<div class="ticker"><span id="tick"></span></div>
+
+<script>
+/* ===================== الترسانة ===================== */
+const N = "عيوان";
+
+const R = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => a.slice().sort(()=>Math.random()-.5);
+const el = (h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild;};
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');
+  clearTimeout(x._t);x._t=setTimeout(()=>x.classList.remove('show'),1600);}
+
+const ADJ = ["احبا","معفن","تافه","بايخ","مقرف","سخيف","زفت","خايب","مهزوز","فاشل","مقلب","بايظ","نتن","كسول","مسطول","بارد","غبي","هبيط","لزج","مايع"];
+const NOUN = ["حمار","بغل","كلب","خرا","صرصار","بلاعة","زبالة","بامية","كوسة","طوبة","دولاب","جزمة","شبشب","ترابيزة","بلطجي فاشل","ميكروب","فيروس","تلاجة بايظة","مروحة مكسورة","حنفية بتنقط"];
+const VERB = ["بيتنفس","بيمشي","بيتكلم","بيضحك","بياكل","بينام","بيفكر","بيرد على التليفون","بيلبس","بيسوق"];
+
+const DISS = [
+  `${N} احبا بشكل رسمي وموثق من الأمم المتحدة`,
+  `${N} لو كان في مسابقة للقرف كان جاب المركز التاني .. عشان حتى القرف مش راضي بيه`,
+  `لو الغباء كان بيتباع بالكيلو ${N} كان فتح سوبر ماركت`,
+  `${N} وشه زي الشاشة اللي مفيهاش إرسال`,
+  `${N} بيدخل الأوضة فالواي فاي بيقع`,
+  `${N} احبا لدرجة إن المراية بتقول "معلش مش انهاردة"`,
+  `${N} لما بيتكلم الناس بتحس إن في تحديث ويندوز شغال في الخلفية`,
+  `${N} مخه زي البطارية بتاعة الريموت .. موجودة بس مش نافعة`,
+  `${N} لو كان فيه أوسكار للبيخة كان اداها لنفسه وقعد يصفق لوحده`,
+  `${N} أنضف حاجة فيه إنه بيتحمم بالغلط`,
+  `${N} احبا و ابن احبا و حفيد احبا .. عيلة كاملة من الاحبا`,
+  `${N} لو وقع في بلاعة البلاعة هي اللي هتشتكي`,
+  `${N} صوته زي صوت الفرامل بتاعة التوك توك`,
+  `${N} بيفتكر نفسه شخصية مهمة .. وهو أصلا مش شخصية`,
+  `أي جروب ${N} بيدخله بيتحول لمقبرة في ٣ ثواني`,
+  `${N} بيقول نكتة الناس بتضحك من الخوف مش من الضحك`,
+  `${N} حظه زي دماغه .. مش موجود`,
+  `${N} لو كان بيتباع في محل الرجعية هتبقى مجانية`,
+  `${N} احبا بمعنى الكلمة .. الكلمة نفسها اتضايقت`,
+  `${N} أول واحد في التاريخ الجوجل يبحث عنه هو`,
+  `${N} لو مسك حاجة تبوظ .. لو ساب حاجة تبوظ .. الحل يقعد ساكت`,
+  `اللي عمل ${N} كان بيجرب بس`,
+  `${N} زي الإعلان اللي بيقطع الفيديو .. محدش عايزه بس بيظهر`,
+  `${N} خلقته زي الواجب المدرسي .. لازم تشوفه غصب عنك وانت مضايق`,
+  `${N} بيحاول يكون كوول وهو مش حتى فاتر`,
+  `لو ${N} قال الساعة كام اطلع من البيت وشوف بنفسك`,
+  `${N} ريحته سبقت اسمه في جوجل`,
+  `${N} احبا بالوراثة والتربية والاختيار الشخصي كمان`,
+  `${N} بيتكلم كتير عشان لو سكت هيفتكروه أثاث`,
+  `${N} في ألعاب الفيديو بيخسر مع الكمبيوتر وهو على أسهل مستوى`
+];
+
+const FACTS = [
+  `العلماء درسوا مخ ${N} ولقوا فيه صرصار بيتفسح`,
+  `${N} أول كائن حي البعوضة ترفض تقرصه`,
+  `تم استخدام صور ${N} لتخويف الأطفال في ٧ محافظات`,
+  `شركات المياه بتنصح إنك تغسل إيدك بعد ما تفتكر ${N}`,
+  `${N} مسجل في الطب البيطري مش الطب البشري`,
+  `دراسة أثبتت إن سماع صوت ${N} بيقلل الشهية بنسبة ٩٤٪`,
+  `${N} اتطرد من جروب العيلة قبل ما يتضاف`,
+  `الديك بيصحى الصبح عشان يهرب من ${N}`,
+  `${N} كان هيبقى شخص محترم بس النت قطع`,
+  `${N} الوحيد اللي المكيف بيشتغل فيه على وضع "قرف"`
+];
+
+const SLOGANS = [
+  "الموقع الرسمي لتوثيق قرف عيوان",
+  "من ١٩٩٩ وإحنا بنشتم عيوان .. ولسه",
+  "منظمة عالمية غير هادفة لأي حاجة",
+  "الموقع ده مدعوم من كل اللي اتقهروا من عيوان",
+  "اضغط ريفريش .. عيوان هياكلها تاني",
+  "برعاية: كل الناس اللي عرفت عيوان وندمت"
+];
+
+const ACC = ["--hot","--cy","--acid","--or"];
+
+/* ===================== الألعاب و الفقرات ===================== */
+const MODULES = [];
+
+/* 1) مولد الإهانات */
+MODULES.push({
+  tag:"مولد الشتايم", title:"🎰 مكنة الاحبا",
+  hint:"اضغط و هي هتطلعلك وصف جديد لعيوان .. مفيش تكرار تقريبا",
+  build(){
+    const box = el(`<div class="card">
+      <span class="tag">مولد آلي</span><h2>🎰 مكنة الاحبا</h2>
+      <p class="hint">دوس الزرار و استحمل</p>
+      <div class="big" id="mg">جاهز؟</div>
+      <div class="row">
+        <button id="go">🔥 اطحن</button>
+        <button class="ghost" id="cp">📋 انسخ و ابعتهاله</button>
+      </div></div>`);
+    const out = box.querySelector('#mg');
+    const gen = ()=> `${N} ${R(VERB)} زي ${R(NOUN)} ${R(ADJ)}`;
+    const roll = ()=>{
+      let i=0; const t=setInterval(()=>{ out.textContent=gen(); if(++i>7){clearInterval(t);} },60);
+    };
+    box.querySelector('#go').onclick = roll;
+    box.querySelector('#cp').onclick = ()=>{
+      navigator.clipboard?.writeText(out.textContent); toast("اتنسخت .. ابعتهاله دلوقتي");
+    };
+    roll();
+    return box;
+  }
+});
+
+/* 2) اختبار: كام في المية انت عيوان */
+MODULES.push({
+  build(){
+    const Q = shuffle([
+      {q:"لو صاحبك طلب منك فلوس ترد بإيه؟", a:["أديله على طول","أقوله بعدين و أختفي","أقوله انا كمان مديون","أعمل نفسي مقرتش"]},
+      {q:"آخر مرة استحميت فيها إمتى؟", a:["النهاردة","إمبارح","الأسبوع اللي فات","إيه الاستحمام ده"]},
+      {q:"بتعمل إيه لما حد يضحك على نكتتك؟", a:["أضحك معاه","أعيدها ١٠ مرات","أقوله انا عبقري","مفيش حد ضحك أصلا"]},
+      {q:"لو لقيت محفظة في الشارع؟", a:["أوديها القسم","أدور على صاحبها","أخد اللي فيها و أرميها","أخد المحفظة و أسيب الفلوس عشان الشياكة"]},
+      {q:"رأيك في عيوان؟", a:["احبا","احبا جدا","احبا بشكل غير طبيعي","عيوان مين؟ .. طب انت مين؟"]},
+      {q:"بتشحن التليفون لحد كام؟", a:["١٠٠٪","٨٠٪","بيفصل لوحده","بشحن تليفون غيري"]},
+      {q:"لو حد كلمك و انت نايم؟", a:["أرد عادي","أرد و أشتم","أعمل نفسي ميت","أرن عليه الساعة ٤ الفجر تاني يوم"]}
+    ]).slice(0,4);
+    const box = el(`<div class="card"><span class="tag">اختبار شخصية</span>
+      <h2>🧪 انت عيوان بنسبة كام؟</h2>
+      <p class="hint">جاوب بصراحة .. النتيجة هتوجعك</p><div id="qz"></div></div>`);
+    const host = box.querySelector('#qz');
+    let i=0, score=0;
+    const step=()=>{
+      if(i>=Q.length){
+        const pct = Math.min(99, 55 + score*6 + Math.floor(Math.random()*12));
+        const verdict = pct>90?`انت عيوان نفسه .. سيبك من الموقع و روح استحمى`
+                     : pct>75?`فيك عرق عيوان قوي .. اتعالج`
+                     : `انت مش عيوان .. بس بتشبهه في المشي و ده كفاية عيب`;
+        host.innerHTML = `<div class="big">النتيجة: <span class="mono">${pct}%</span> عيوان</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <p class="hint" style="font-size:17px">${verdict}</p>
+          <p class="hint">ملحوظة: عيوان نفسه عمل الاختبار و جاب ١٢٠٪</p>`;
+        return;
+      }
+      const q=Q[i];
+      host.innerHTML = `<div class="big">${i+1}. ${q.q}</div>`;
+      shuffle(q.a).forEach((t,ix)=>{
+        const b=document.createElement('button'); b.className='opt'; b.textContent=t;
+        b.onclick=()=>{ score += ix; i++; step(); };
+        host.appendChild(b);
+      });
+    };
+    step();
+    return box;
+  }
+});
+
+/* 3) اضرب عيوان */
+MODULES.push({
+  build(){
+    const box = el(`<div class="card"><span class="tag">لعبة</span>
+      <h2>👊 اضرب عيوان</h2>
+      <p class="hint">هيطلع من الحفر .. الحقه بالجزمة. عندك ٢٠ ثانية</p>
+      <div class="row" style="justify-content:space-between;font-weight:900;font-size:19px">
+        <span>النقط: <span class="mono" id="sc">0</span></span>
+        <span>الوقت: <span class="mono" id="tm">20</span></span>
+      </div>
+      <div class="grid g3" id="gd" style="margin-top:12px"></div>
+      <p class="hint" id="res" style="margin-top:14px"></p></div>`);
+    const gd=box.querySelector('#gd'); const holes=[];
+    for(let k=0;k<9;k++){const h=el(`<div class="hole"></div>`);gd.appendChild(h);holes.push(h);}
+    let sc=0,t=20,cur=-1,live=true;
+    const faces=["😀","🤪","😎","🥴","🤡"];
+    const pop=()=>{ if(!live)return;
+      holes.forEach(h=>{h.textContent="";h.classList.remove('on')});
+      cur=Math.floor(Math.random()*9);
+      holes[cur].textContent=R(faces); holes[cur].classList.add('on');
+    };
+    holes.forEach((h,ix)=>h.onclick=()=>{
+      if(!live)return;
+      if(ix===cur){ sc++; box.querySelector('#sc').textContent=sc; h.textContent="🥾"; cur=-1;
+        toast(R(["خد في وشك","حلوة دي","تاني تاني","دي على قد ما تستاهل"]));
+      } else { sc=Math.max(0,sc-1); box.querySelector('#sc').textContent=sc; box.classList.add('shk');
+        setTimeout(()=>box.classList.remove('shk'),350); }
+    });
+    const iv=setInterval(pop, 780); pop();
+    const cd=setInterval(()=>{
+      box.querySelector('#tm').textContent=--t;
+      if(t<=0){ live=false; clearInterval(iv); clearInterval(cd);
+        holes.forEach(h=>{h.textContent="";h.classList.remove('on')});
+        box.querySelector('#res').innerHTML = sc>14
+          ? `<b style="font-size:19px">ضربته ${sc} مرة 🏆 .. انت بطل قومي، عيوان دلوقتي في المستشفى بيقول "مش عارف مين"</b>`
+          : sc>6 ? `<b style="font-size:19px">${sc} ضربة .. كويس بس عيوان يستاهل أكتر</b>`
+          : `<b style="font-size:19px">${sc} بس؟ .. انت شكلك بتحبه، اتقل على نفسك</b>`;
+      }
+    },1000);
+    return box;
+  }
+});
+
+/* 4) حجر ورقة مقص (مغشوشة) */
+MODULES.push({
+  build(){
+    const box = el(`<div class="card"><span class="tag">تحدي</span>
+      <h2>✊ حجر ورقة مقص ضد عيوان</h2>
+      <p class="hint">اللعبة مغشوشة لصالحك .. زي ما هو مغشوش في الأصل</p>
+      <div class="row" id="btns">
+        <button data-v="0">✊ حجر</button><button data-v="1">✋ ورقة</button><button data-v="2">✌️ مقص</button>
+      </div>
+      <div class="big" id="out">اختار يا معلم</div>
+      <p class="hint" id="tally">النتيجة: انت 0 - عيوان 0</p></div>`);
+    const I=["✊","✋","✌️"]; let me=0,him=0;
+    box.querySelectorAll('#btns button').forEach(b=>b.onclick=()=>{
+      const v=+b.dataset.v;
+      const lose = Math.random()<0.85;                 // 85% انه يخسر
+      const his = lose ? (v+2)%3 : (Math.random()<.5? v : (v+1)%3);
+      let msg;
+      if(his===v) msg = `تعادل .. ${N} فرح كإنه كسب، تخلف`;
+      else if((v+2)%3===his){ me++; msg = R([`كسبته! ${N} قلب لونه`,`كسبته و قعد يقول "تاني تاني"`,`كسبته .. راح يعيط لأمه`]); }
+      else { him++; msg = `كسبك.. المرة دي بس، حظ الاحبا`; }
+      box.querySelector('#out').innerHTML = `${I[v]} ضد ${I[his]}<br>${msg}`;
+      box.querySelector('#tally').textContent = `النتيجة: انت ${me} - ${N} ${him}`;
+      if(me===5){ box.querySelector('#tally').textContent += " — خلاص كفاية عليه، الراجل بقى بيرتعش"; }
+    });
+    return box;
+  }
+});
+
+/* 5) البرج */
+MODULES.push({
+  build(){
+    const luck=["زفت","اسود","مقلوب","بايظ","مش موجود","تحت الصفر"];
+    const advice=[
+      `متردش على ${N} النهاردة، هيجيبلك صداع`,
+      `لو شفت ${N} في الشارع غير الرصيف .. ولو غيّر هو كمان اجري`,
+      `النهاردة يوم كويس عشان تبلوك ${N}`,
+      `فلوسك هتضيع لو ${N} عرف إن معاك`,
+      `تجنب الأماكن اللي فيها ${N} .. يعني تجنب البلاعات`,
+      `حظك في الحب حلو، طول ما ${N} بعيد`
+    ];
+    const box = el(`<div class="card"><span class="tag">فلك و تنجيم</span>
+      <h2>🔮 برجك النهاردة</h2>
+      <p class="hint">قراءة دقيقة ١٠٠٪ (لأ)</p>
+      <table>
+        <tr><td>حظك النهاردة</td><td><b>${R(luck)}</b></td></tr>
+        <tr><td>حظ ${N}</td><td><b>أزفت منك بمراحل</b></td></tr>
+        <tr><td>رقم الحظ</td><td><b class="mono">${Math.floor(Math.random()*99)}</b></td></tr>
+        <tr><td>اللون المناسب</td><td><b>${R(["أحمر","لبني","أسود","لون وش عيوان"])}</b></td></tr>
+        <tr><td>نصيحة اليوم</td><td><b>${R(advice)}</b></td></tr>
+        <tr><td>نسبة القرف في الجو</td><td><b class="mono">${60+Math.floor(Math.random()*40)}%</b></td></tr>
+      </table>
+      <p class="hint" style="margin-top:14px">تحذير: النجوم بتقول إن ${N} هيرن عليك.. متردش.</p></div>`);
+    return box;
+  }
+});
+
+/* 6) شهادة تقدير */
+MODULES.push({
+  build(){
+    const titles=["أحبى شخص في الشرق الأوسط","بطل القرف لسنة 2026","الحاصل على المركز الأول في البيخة","سفير المعفنة لدى الأمم المتحدة","صاحب أطول تاريخ في التخلف"];
+    const box = el(`<div class="card"><span class="tag">تكريم رسمي</span>
+      <h2>🏅 شهادة تقدير</h2>
+      <div class="cert">
+        <div class="seal">🏆</div>
+        <p style="color:var(--dim);margin:0">تشهد اللجنة العليا لمكافحة عيوان بأن</p>
+        <h3>${N}</h3>
+        <p style="font-size:18px;font-weight:800;margin:6px 0">${R(titles)}</p>
+        <p style="color:var(--dim);font-size:14px;line-height:1.9">
+          و ذلك تقديراً لمجهوداته المتواصلة في تنغيص عيشة اللي حواليه،<br>
+          و مساهمته الكبيرة في رفع نسبة الاكتئاب في المنطقة.<br>
+          و اللجنة بتترجاه يفضل بعيد.
+        </p>
+        <p class="mono" style="color:var(--dim);font-size:12px">رقم الشهادة: ${Date.now().toString().slice(-8)}</p>
+      </div>
+      <div class="row" style="margin-top:14px"><button onclick="window.print()">🖨️ اطبعها و علقهاله</button></div></div>`);
+    return box;
+  }
+});
+
+/* 7) صح ولا غلط */
+MODULES.push({
+  build(){
+    const facts = shuffle(FACTS).slice(0,5);
+    const box = el(`<div class="card"><span class="tag">معلومات</span>
+      <h2>✅ صح ولا غلط</h2>
+      <p class="hint">كل الإجابات صح .. بس جرب بنفسك</p><div id="q"></div>
+      <p class="hint" id="s"></p></div>`);
+    const host=box.querySelector('#q'); let i=0,ok=0;
+    const step=()=>{
+      if(i>=facts.length){
+        host.innerHTML=`<div class="big">خلصت 🎉</div>`;
+        box.querySelector('#s').innerHTML=`جاوبت صح <b>${ok}</b> من <b>${facts.length}</b> — و في كل الحالات ${N} احبا، فمفيش خسارة.`;
+        return;
+      }
+      host.innerHTML=`<div class="big">${facts[i]}</div>
+        <div class="row"><button data-v="1">صح ✅</button><button class="ghost" data-v="0">غلط ❌</button></div>`;
+      host.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        if(b.dataset.v==="1"){ ok++; toast("صح طبعا، دي حقيقة علمية"); }
+        else toast(R(["غلط! دي موثقة","لأ يا حبيبي، ده كلام مؤكد","انت بتدافع عنه ليه؟"]));
+        i++; step();
+      });
+    };
+    step();
+    return box;
+  }
+});
+
+/* 8) بطاقة هوية عيوان */
+MODULES.push({
+  build(){
+    const box = el(`<div class="card"><span class="tag">وثيقة مسربة</span>
+      <h2>🪪 بطاقة عيوان الشخصية</h2>
+      <div class="id"><div class="pic">${R(["🤡","🥴","😐","🫠","🐸"])}</div>
+        <div><b style="font-size:20px">${N}</b><br>
+        <span class="hint">الجنسية: مرفوضة من كل الدول</span></div></div>
+      <table>
+        <tr><td>المهنة</td><td>${R(["احبا محترف","بتاع بلاش","قاعد على القهوة من ٢٠١٤","مدير عام قسم القرف","عاطل بس بمزاج"])}</td></tr>
+        <tr><td>الحالة الاجتماعية</td><td>${R(["مرفوض","اترفض ٧ مرات","بيحب من طرف واحد و الطرف ده بلوكه","معندوش أمل"])}</td></tr>
+        <tr><td>الطول</td><td class="mono">${140+Math.floor(Math.random()*30)} سم (بالكعب)</td></tr>
+        <tr><td>الوزن</td><td>${R(["ثقيل على القلب","أخف من كلامه","مش مهم، المهم إنه احبا"])}</td></tr>
+        <tr><td>فصيلة الدم</td><td>${R(["زفت سالب","بنزين ٨٠","مياه بلاعة","شاي بلبن سايح"])}</td></tr>
+        <tr><td>علامة مميزة</td><td>${R(["الريحة","الصوت","الوش","كله مميز بالسلب"])}</td></tr>
+        <tr><td>محل الإقامة</td><td>${R(["تحت السلم","في نفسه","جروب مالوش لازمة","بلاعة العمارة"])}</td></tr>
+        <tr><td>صلاحية البطاقة</td><td>انتهت من زمان و محدش جدّدها عشان محدش فارق معاه</td></tr>
+      </table></div>`);
+    return box;
+  }
+});
+
+/* 9) عداد الاحبا (كليكر) */
+MODULES.push({
+  build(){
+    const box = el(`<div class="card"><span class="tag">لعبة ضغط</span>
+      <h2>🔴 عداد الاحبا العالمي</h2>
+      <p class="hint">كل ضغطة بتزود رصيد عيوان من الاحبا. الرقم بيتحفظ في جهازك.</p>
+      <div class="big mono" id="c" style="font-size:clamp(40px,13vw,80px);text-align:center">0</div>
+      <div class="row" style="justify-content:center">
+        <button id="p" style="font-size:22px;padding:20px 44px">😤 احبا +1</button>
+      </div>
+      <p class="hint" id="m" style="text-align:center;margin-top:14px"></p></div>`);
+    let n = +(localStorage.getItem('ewan_cnt')||0);
+    const c=box.querySelector('#c'), m=box.querySelector('#m');
+    const marks={10:"عشرة! لسه بدري",50:"٥٠ .. ابدأ ترتاح شوية",100:"١٠٠! عيوان حس بحاجة",250:"٢٥٠ .. صباعك اتعور علشانه؟",500:"٥٠٠ .. انت كده بتحبه بطريقة غريبة",1000:"١٠٠٠!! خلاص كفاية، هو فهم"};
+    const draw=()=>{c.textContent=n.toLocaleString('ar-EG'); localStorage.setItem('ewan_cnt',n); if(marks[n]) {m.textContent=marks[n]; toast(marks[n]);} };
+    box.querySelector('#p').onclick=()=>{ n++; draw(); c.style.transform="scale(1.15)"; setTimeout(()=>c.style.transform="",90); };
+    draw(); m.textContent = n? `رصيده الحالي عندك: ${n} احبا. كمّل.` : "يلا ابدأ.";
+    return box;
+  }
+});
+
+/* 10) معركة بالأدوار */
+MODULES.push({
+  build(){
+    const moves=[
+      {n:"🥾 شلوت طائر",d:[12,26]},{n:"🗣️ شتيمة مباشرة",d:[8,20]},
+      {n:"📸 نشر صورته القديمة",d:[15,30]},{n:"🧴 رش مطهر عليه",d:[6,18]}
+    ];
+    const box = el(`<div class="card"><span class="tag">قتال</span>
+      <h2>⚔️ معركتك ضد عيوان</h2>
+      <p class="hint">صحته ١٠٠ .. و كرامته صفر من الأول</p>
+      <div>صحة ${N}: <b class="mono" id="hp">100</b></div>
+      <div class="bar"><i id="hb" style="width:100%"></i></div>
+      <div class="grid g2" id="mv"></div>
+      <p class="hint" id="log" style="margin-top:14px">اختار ضربة</p></div>`);
+    const mv=box.querySelector('#mv');
+    let hp=100, done=false;
+    moves.forEach(m=>{
+      const b=document.createElement('button'); b.textContent=m.n;
+      b.onclick=()=>{
+        if(done)return;
+        const dmg=m.d[0]+Math.floor(Math.random()*(m.d[1]-m.d[0]));
+        const crit=Math.random()<.18;
+        const tot=crit?dmg*2:dmg;
+        hp=Math.max(0,hp-tot);
+        box.querySelector('#hp').textContent=hp;
+        box.querySelector('#hb').style.width=hp+"%";
+        box.classList.add('shk'); setTimeout(()=>box.classList.remove('shk'),350);
+        box.querySelector('#log').innerHTML = crit
+          ? `<b style="color:var(--acid)">ضربة قاضية!! -${tot} .. ${N} طار من مكانه</b>`
+          : `استخدمت <b>${m.n}</b> — <b>-${tot}</b> .. ${R([`${N} قال "اه"`,`${N} بيدور على أمه`,`${N} اتلخبط`,`${N} قال "معلش انا كنت بهزر"`])}`;
+        if(hp===0){ done=true;
+          box.querySelector('#log').innerHTML=`<b style="font-size:20px">🏁 خلصت عليه. ${N} على الأرض بيقول "خلاص انا احبا و معترف". مبروك.</b>`;
+        }
+      };
+      mv.appendChild(b);
+    });
+    return box;
+  }
+});
+
+/* 11) الكورة السحرية */
+MODULES.push({
+  build(){
+    const ans=[
+      `اكيد، هو احبا و ده معروف`,`لأ، هو أوحش من كده`,`اسأل حد تاني، انا اتقرفت`,
+      `ده سؤال إجابته: ${N} احبا`,`النجوم بتقول: ابعد عنه`,`لو الإجابة ليها علاقة بيه فهي "لأ"`,
+      `ممكن.. بس لو ${N} داخل في الموضوع فانسى`,`الإجابة اه، بس هو برضه معفن`
+    ];
+    const box = el(`<div class="card"><span class="tag">عرافة</span>
+      <h2>🎱 اسأل الكورة السحرية</h2>
+      <p class="hint">اكتب أي سؤال و الكورة هترد (و هتشتم عيوان في كل الحالات)</p>
+      <input id="q" placeholder="اكتب سؤالك هنا..." style="width:100%;padding:14px;border-radius:14px;
+        border:1px solid var(--line);background:#1d1930;color:var(--ink);font-family:inherit;font-size:16px;margin-bottom:12px">
+      <button id="b">🎱 هزّ الكورة</button>
+      <div class="big" id="a"></div></div>`);
+    box.querySelector('#b').onclick=()=>{
+      const a=box.querySelector('#a'); a.textContent="...";
+      setTimeout(()=>a.textContent=R(ans),500);
+    };
+    return box;
+  }
+});
+
+/* 12) بورصة سهم عيوان */
+MODULES.push({
+  build(){
+    const pts=[]; let v=100;
+    for(let i=0;i<24;i++){ v = Math.max(2, v - Math.random()*9 + Math.random()*3); pts.push(v); }
+    const w=600,h=180;
+    const path = pts.map((p,i)=>`${i?'L':'M'}${(i/(pts.length-1))*w},${h-(p/110)*h}`).join(' ');
+    const last=pts[pts.length-1].toFixed(2);
+    const box = el(`<div class="card"><span class="tag">اقتصاد</span>
+      <h2>📉 سهم عيوان في البورصة</h2>
+      <p class="hint">تحديث مباشر .. للأسف بينزل بس</p>
+      <div class="big">EWAN <span class="mono" style="color:var(--hot)">${last} ▼</span></div>
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;background:#120f21;border-radius:14px">
+        <path d="${path}" fill="none" stroke="var(--hot)" stroke-width="4" stroke-linejoin="round"/>
+      </svg>
+      <table style="margin-top:12px">
+        <tr><td>القيمة السوقية</td><td>٣ جنيه و علبة كبريت</td></tr>
+        <tr><td>توصية المحللين</td><td><b style="color:var(--hot)">بيع فورا و اهرب</b></td></tr>
+        <tr><td>أعلى سعر تاريخي</td><td>يوم ما كان ساكت</td></tr>
+        <tr><td>سبب الانهيار</td><td>${R(["فتح بقه","دخل الجروب","بعت فويس","ظهر في صورة","قال رأيه"])}</td></tr>
+      </table></div>`);
+    return box;
+  }
+});
+
+/* 13) عجلة الحظ */
+MODULES.push({
+  build(){
+    const items=["اتشتم","اتشتم تاني","خد شلوت","اتحرم من النت","اروح انام","خد ٢ شلوت","اتبلوك","اتطرد من الجروب"];
+    const box = el(`<div class="card"><span class="tag">حظ</span>
+      <h2>🎡 عجلة عقاب عيوان</h2>
+      <p class="hint">لفها و شوف عيوان هياخد إيه النهاردة</p>
+      <div style="text-align:center;font-size:80px;transition:transform 2s cubic-bezier(.15,.9,.2,1)" id="wh">🎡</div>
+      <div class="row" style="justify-content:center"><button id="s">لِف!</button></div>
+      <div class="big" id="o" style="text-align:center"></div></div>`);
+    box.querySelector('#s').onclick=()=>{
+      const wh=box.querySelector('#wh');
+      wh.style.transform=`rotate(${1440+Math.random()*720}deg)`;
+      box.querySelector('#o').textContent="...";
+      setTimeout(()=>{ box.querySelector('#o').innerHTML=`الحكم: <b>${N} ${R(items)}</b>`; toast("نُفّذ الحكم ✅"); },2100);
+    };
+    return box;
+  }
+});
+
+/* 14) عدّاد أيام من غير قرف */
+MODULES.push({
+  build(){
+    const box = el(`<div class="card"><span class="tag">إحصائيات</span>
+      <h2>📊 لوحة متابعة عيوان</h2>
+      <table>
+        <tr><td>أيام من غير ما يعمل حاجة تقرف</td><td><b class="mono">0</b> يوم</td></tr>
+        <tr><td>عدد اللي بلوكوه</td><td class="mono">${1200+Math.floor(Math.random()*8000)}</td></tr>
+        <tr><td>عدد الرسايل اللي مردش عليها حد</td><td class="mono">${Math.floor(Math.random()*999)}</td></tr>
+        <tr><td>نسبة الاحبا</td><td><b class="mono">${95+Math.floor(Math.random()*5)}%</b></td></tr>
+        <tr><td>آخر مرة قال فيها حاجة مفيدة</td><td>لسه محصلتش</td></tr>
+        <tr><td>تقييم الجمهور</td><td>⭐ من ٥ (و دي عشان مفيش أقل)</td></tr>
+      </table>
+      <div class="bar"><i style="width:0" id="b1"></i></div>
+      <p class="hint">مؤشر القرف العام — بيزيد كل ثانية</p></div>`);
+    setTimeout(()=>box.querySelector('#b1').style.width="97%",120);
+    return box;
+  }
+});
+
+/* ===================== التشغيل ===================== */
+(function boot(){
+  document.documentElement.style.setProperty('--accent', `var(${R(ACC)})`);
+  document.getElementById('slogan').textContent = R(SLOGANS);
+  document.getElementById('ver').textContent = (Math.random()*9).toFixed(2);
+
+  document.getElementById('headline').innerHTML =
+    `<small>خبر عاجل</small>${R(DISS)}`;
+
+  const stage = document.getElementById('stage');
+  const picks = shuffle(MODULES).slice(0, 2 + Math.floor(Math.random()*2)); // 2 أو 3 فقرات
+  picks.forEach((m,i)=>{ const n=m.build(); n.style.animationDelay=(i*.09)+'s'; stage.appendChild(n); });
+
+  // شريط الأخبار
+  const line = shuffle([...DISS,...FACTS]).slice(0,8).join("  ★  ");
+  document.getElementById('tick').textContent = line + "  ★  ";
+
+  // اللوجو بيغير شكله
+  const logo=document.getElementById('logo');
+  logo.onclick=()=>{ logo.textContent = R([N,"عيوان الاحبا","عيوان المعفن","خد يا عيوان","عيوان 🤡"]);
+    toast(R(["اه كده","سيبه هو مش فارق معاه","تاني تاني"])); };
+})();
+</script>
+</body>
+</html>
